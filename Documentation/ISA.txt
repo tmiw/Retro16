@@ -1,0 +1,74 @@
+Words are big endian
+Memory is word addressed, not byte addressed
+
+Registers:
+   R0 = always 0
+   PC = Program Counter
+   SP = Stack Pointer
+   R1, R2, R3, R4, R5
+   Status bits (updated for all but branch based on value of destination register after operation):
+      Positive, Negative, Zero
+
+I/O / hardware access via access of specific memory locations:
+   Display: 0xDA00-0xFFFF (extra reserved for future use)
+            0xF82F-0xFFFF (80x25 text mode; only mode supported for v1)
+       Byte 1: bbbb ffff
+	           bbbb      = Background color (0 = black, others TBD)
+			        ffff = Foreground color (0 = white, others TBD)
+	   Byte 2: ASCII code of letter to display
+   Keyboard: TBD
+   UART: TBD
+   
+Calling convention:
+   Function arguments are on stack, not registers (SP at function start - offset)
+   Local variables (SP at function start + offset)
+
+Do we want to support interrupts?
+   a) will need to copy all register contents before handling interrupt and restore them afterward
+   b) what happens when multiple interrupts arrive simultaneously? during handling of previous interrupt
+   
+1xxx yyyy yyyy yyyy = Branch (BRx)
+ 000                = Branch Unconditional (BRU)
+ 001                = Branch Less Than Zero (BRN)
+ 010                = Branch Greater Than Zero (BRP)
+ 011                = Reserved
+ 100                = Branch If Zero (BRZ)
+ 101                = Branch Less Or Equal (BRLE)
+ 110                = Branch Greater Or Equal (BRGE)
+ 111                = Reserved
+     yyyy yyyy yyyy = Offset from PC in words
+
+010d ddxx xyyy yyyy = Load (LD)
+   d dd             = Destination register
+       xx x         = Memory location register
+           yyy yyyy = Offset from location register in words
+
+011d ddxx xyyy yyyy = Store (ST)
+   d dd             = Memory location register
+       xx x         = Data value register
+           yyy yyyy = Offset from location register in words
+
+0000 0ddd xxxy yyyy = Shift
+      ddd           = Destination register
+          xxx       = First register
+             y yyyy = Shift amount (negative = right shift, positive = left shift)
+
+0000 1ppd ddxx xyyy = Arithmetric w/two register operands
+      00            = ADD
+	  01            = AND
+	  10            = OR
+	  11            = NOT
+	    d dd        = Destination register
+		    xx x    = First operand register
+			    yyy = Second operand register (ignored for NOT)
+
+001p pddd xxxy yyyy = Arithmetric w/register + const operands
+   0 0              = ADD
+   0 1              = AND
+   1 0              = OR
+   1 1              = NOT
+      ddd           = Destination register
+	      xxx       = First operand register
+		     y yyyy = Constant value (ignored for NOT)
+
+All other byte formats reserved for future use.
