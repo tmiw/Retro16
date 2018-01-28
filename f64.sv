@@ -1,4 +1,4 @@
-module Retro16 (
+module f64 (
     clk,
 	 rst,
 	 vga_hsync,
