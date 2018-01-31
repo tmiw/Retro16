@@ -67,8 +67,6 @@ video_ram #(
 	.ADDR_WIDTH(11)
 ) video_framebuffer(video_ram_input_data, 0, video_ram_input_addr, video_ram_address, video_ram_we, 0, clk, clk, tmp, video_ram_contents);
 
-// Pixel generation is at global clock rate (not pixel clock) due to fuzziness/misrendered 
-// characters otherwise.
-// TODO: determine if use of pixel clock is possible.
-vga_pixel_gen pixel_generator(clk, data_reset, video_ram_address, video_ram_contents, pixel_col, pixel_row, vga_r, vga_g, vga_b);
+vga_pixel_gen pixel_generator(pixel_clk, data_reset, video_ram_address, video_ram_contents, pixel_col, pixel_row, vga_r, vga_g, vga_b);
+
 endmodule
