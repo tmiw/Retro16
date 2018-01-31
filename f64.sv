@@ -25,17 +25,17 @@ reg video_ram_we = 0;
 always @(posedge clk)
 begin
 	video_ram_addr <= video_ram_addr + 11'd1;
-	if (video_ram_addr < 80*30)
+	if (video_ram_addr < 80*25)
 	begin
 		case (video_ram_addr)
-		0:	video_ram_data <= 16'h3048; // H
-		1: video_ram_data <= 16'h3065; // e
-		2: video_ram_data <= 16'h306c; // l
-		3: video_ram_data <= 16'h306c; // l
-		4: video_ram_data <= 16'h306f; // o
-		default: video_ram_data <= 16'h3000;
+		0:	video_ram_data <= 16'h0748; // H
+		1: video_ram_data <= 16'h0765; // e
+		2: video_ram_data <= 16'h076c; // l
+		3: video_ram_data <= 16'h076c; // l
+		4: video_ram_data <= 16'h076f; // o
+		default: video_ram_data <= 16'h0700;
 		endcase
-		video_ram_we <= 1;
+		video_ram_we <= initial_rst;
 	end
 	else
 		video_ram_addr <= 0;
