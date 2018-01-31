@@ -5,7 +5,10 @@ module vga_display(
 	vga_vsync,
 	vga_r,
 	vga_g,
-	vga_b
+	vga_b,
+	video_ram_input_addr,
+	video_ram_input_data,
+	video_ram_we
 );
 
 localparam VGA_DISPLAY_VISIBLE_WIDTH = 640;
@@ -26,6 +29,9 @@ output wire vga_vsync;
 output wire vga_r;
 output wire vga_g;
 output wire vga_b;
+input reg [11:0] video_ram_input_addr;
+input reg [15:0] video_ram_input_data;
+input wire video_ram_we;
 
 // Effective 25MHz clock. Adjust as appropriate for other resolutions.
 reg pixel_clk;
@@ -52,8 +58,17 @@ vga_sync #(
 	.VERT_BP(VGA_DISPLAY_VERT_BP)
 ) sync_generator(pixel_clk, rst, vga_hsync, vga_vsync, data_reset, pixel_row, pixel_col);
 
+reg [11:0] video_ram_address;
+reg [15:0] video_ram_contents;
+reg [15:0] tmp;
+
+video_ram #(
+	.DATA_WIDTH(16),
+	.ADDR_WIDTH(11)
+) video_framebuffer(video_ram_input_data, 0, video_ram_input_addr, video_ram_address, video_ram_we, 0, clk, clk, tmp, video_ram_contents);
+
 // Pixel generation is at global clock rate (not pixel clock) due to fuzziness/misrendered 
 // characters otherwise.
 // TODO: determine if use of pixel clock is possible.
-vga_pixel_gen pixel_generator(clk, data_reset, pixel_col, pixel_row, vga_r, vga_g, vga_b);
+vga_pixel_gen pixel_generator(clk, data_reset, video_ram_address, video_ram_contents, pixel_col, pixel_row, vga_r, vga_g, vga_b);
 endmodule

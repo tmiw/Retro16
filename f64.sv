@@ -17,15 +17,35 @@ output wire vga_g;
 output wire vga_b;
 
 // Assert reset for ~8 clock cycles before enabling display.
-reg [2:0] reset_ctr = 0;
+// Also, temporarily fill video RAM with hello message.
 reg initial_rst = 1;
+reg [11:0] video_ram_addr = 0;
+reg [15:0] video_ram_data = 0;
+reg video_ram_we = 0;
 always @(posedge clk)
 begin
-	reset_ctr <= reset_ctr + 1'b1;
-	if (reset_ctr == 0)
-		initial_rst = 0;
+	video_ram_addr <= video_ram_addr + 11'd1;
+	if (video_ram_addr < 80*30)
+	begin
+		case (video_ram_addr)
+		0:	video_ram_data <= 16'h3048; // H
+		1: video_ram_data <= 16'h3065; // e
+		2: video_ram_data <= 16'h306c; // l
+		3: video_ram_data <= 16'h306c; // l
+		4: video_ram_data <= 16'h306f; // o
+		default: video_ram_data <= 16'h3000;
+		endcase
+		video_ram_we <= 1;
+	end
+	else
+		video_ram_addr <= 0;
+		
+	if (initial_rst && video_ram_addr >= 8)
+	begin
+		initial_rst <= 0;
+	end
 end
 
-vga_display display(clk, initial_rst || ~rst, vga_hsync, vga_vsync, vga_r, vga_g, vga_b);
+vga_display display(clk, initial_rst || ~rst, vga_hsync, vga_vsync, vga_r, vga_g, vga_b, video_ram_addr, video_ram_data, video_ram_we);
 
 endmodule
