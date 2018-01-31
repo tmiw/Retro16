@@ -23,7 +23,7 @@ output reg vga_b;
 wire pixel_en;
 wire ram_addr_past_80x25;
 
-assign ram_addr = data_reset ? 12'd0 : (pixel_col / 12'd8) + ((pixel_row / 12'd16) * 12'd80);
+assign ram_addr = data_reset ? 12'd0 : (pixel_col / 16'd8) + ((pixel_row / 16'd16) * 12'd80);
 assign ram_addr_past_80x25 = ram_addr > (80 * 25);
 
 always @(posedge pixel_clk)
