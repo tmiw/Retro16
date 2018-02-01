@@ -1,6 +1,6 @@
 # Introduction
 
-F64 is a project to build a 16-bit SoC inside of a FPGA, hopefully improving it in some respects over the retro CPUs from the 80s. The name comes from the hexadecimal F, aka decimal 15 (in other words, 10-1h or 16-1).
+F64 is a project to build a 16-bit SoC inside of a FPGA, hopefully improving it in some respects over the retro CPUs from the 80s. The name comes from the largest address in the system, FFFF (aka 64 kilobytes).
 
 This is definitely a work in progress and may be more than someone who's just getting into FPGAs should do.
 
