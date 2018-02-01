@@ -16,6 +16,8 @@ output wire vga_r;
 output wire vga_g;
 output wire vga_b;
 
+reg pixel_clk;
+
 // Assert reset for ~8 clock cycles before enabling display.
 // Also, temporarily fill video RAM with hello message.
 reg initial_rst = 1;
@@ -46,6 +48,11 @@ begin
 	end
 end
 
-vga_display display(clk, initial_rst || ~rst, vga_hsync, vga_vsync, vga_r, vga_g, vga_b, video_ram_addr, video_ram_data, video_ram_we);
+// Assumption: 50MHz global clock. Dividing by 2 gives 25MHz,
+// which is the desired pixel clock for VGA 640x480@60Hz.
+always @(posedge clk)
+	pixel_clk <= pixel_clk + 1'b1;
+
+vga_display display(clk, pixel_clk, initial_rst || ~rst, vga_hsync, vga_vsync, vga_r, vga_g, vga_b, video_ram_addr, video_ram_data, video_ram_we);
 
 endmodule

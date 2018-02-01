@@ -1,5 +1,6 @@
 module vga_display(
 	clk,
+	pixel_clk,
 	rst,
 	vga_hsync,
 	vga_vsync,
@@ -23,6 +24,7 @@ localparam VGA_DISPLAY_FIELD_WIDTH = VGA_DISPLAY_VISIBLE_WIDTH + VGA_DISPLAY_HOR
 localparam VGA_DISPLAY_FIELD_HEIGHT = VGA_DISPLAY_VISIBLE_HEIGHT + VGA_DISPLAY_VERT_SYNC + VGA_DISPLAY_VERT_FP + VGA_DISPLAY_VERT_BP;
 
 input wire clk;
+input wire pixel_clk;
 input wire rst;
 output wire vga_hsync;
 output wire vga_vsync;
@@ -32,16 +34,6 @@ output wire vga_b;
 input reg [11:0] video_ram_input_addr;
 input reg [15:0] video_ram_input_data;
 input wire video_ram_we;
-
-// Effective 25MHz clock. Adjust as appropriate for other resolutions.
-reg pixel_clk;
-always @(posedge clk or posedge rst)
-begin
-	if (rst)
-		pixel_clk <= 0;
-	else
-		pixel_clk <= pixel_clk + 1'b1;
-end
 
 wire data_reset;
 reg [15:0] pixel_row;
