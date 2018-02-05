@@ -5,7 +5,7 @@ module pc_vga_font_rom (
 		 input		clk,
 		 input  [7:0]	ascii_code,
 		 input  [3:0]	row,
-		 output [7:0]	row_of_pixels
+		 output reg [7:0]	row_of_pixels
 		 );
 
 always @(posedge clk)

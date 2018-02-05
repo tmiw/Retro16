@@ -28,16 +28,16 @@ input wire pixel_clk;
 input wire rst;
 output wire vga_hsync;
 output wire vga_vsync;
-output wire vga_r;
-output wire vga_g;
-output wire vga_b;
-input reg [11:0] video_ram_input_addr;
-input reg [15:0] video_ram_input_data;
+output wire [3:0] vga_r;
+output wire [3:0] vga_g;
+output wire [3:0] vga_b;
+input [11:0] video_ram_input_addr;
+input [15:0] video_ram_input_data;
 input wire video_ram_we;
 
 wire data_reset;
-reg [15:0] pixel_row;
-reg [15:0] pixel_col;
+wire [15:0] pixel_row;
+wire [15:0] pixel_col;
 
 vga_sync #(
 	.VISIBLE_WIDTH(VGA_DISPLAY_VISIBLE_WIDTH),
@@ -50,9 +50,9 @@ vga_sync #(
 	.VERT_BP(VGA_DISPLAY_VERT_BP)
 ) sync_generator(pixel_clk, rst, vga_hsync, vga_vsync, data_reset, pixel_row, pixel_col);
 
-reg [11:0] video_ram_address;
-reg [15:0] video_ram_contents;
-reg [15:0] tmp;
+wire [11:0] video_ram_address;
+wire [15:0] video_ram_contents;
+wire [15:0] tmp;
 
 video_ram #(
 	.DATA_WIDTH(16),

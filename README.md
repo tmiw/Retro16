@@ -9,6 +9,7 @@ This is definitely a work in progress and may be more than someone who's just ge
 ## What's done
 
 + VGA display component (80x25 text mode with 8 foreground and background colors @ 640x480)
++ Find a bigger FPGA (now using the Papilio Duo + Computing Shield for development)
 
 ## In progress
 
@@ -16,7 +17,6 @@ This is definitely a work in progress and may be more than someone who's just ge
 
 ## To do
 
-+ Find a bigger FPGA -- current testing is with an Altera Cyclone II-based FPGA and character ROM + planned 4K video RAM leaves little room for system memory or registers.
 + Implement ISA
 
 # How to contribute
