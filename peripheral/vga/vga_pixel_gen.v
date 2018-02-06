@@ -25,7 +25,7 @@ wire ram_addr_past_80x25;
 reg data_reset_sync;
 
 pc_vga_font_rom char_rom(pixel_clk, ram_contents[7:0], pixel_row[3:0], pixel_en);
-assign ram_addr_past_80x25 = pixel_row >= 25;
+assign ram_addr_past_80x25 = pixel_row >= (25*16);
 
 reg [15:0] rom_output_odd;
 reg [15:0] rom_output_even;

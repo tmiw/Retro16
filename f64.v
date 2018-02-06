@@ -64,7 +64,7 @@ end
 // and other peripherals.
 f64_clk_gen clock_generator(clk, global_clk, rst);
 
-// Assumption: 50MHz global clock. Dividing by 4 gives 25MHz,
+// Assumption: 50MHz global clock. Dividing by 2 gives 25MHz,
 // which is the desired pixel clock for VGA 640x480@60Hz.
 always @(posedge global_clk)
 	pixel_clk <= pixel_clk + 1'b1;
