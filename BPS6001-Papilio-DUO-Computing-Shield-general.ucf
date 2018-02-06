@@ -27,9 +27,13 @@ NET SD_MISO       LOC="P118" | IOSTANDARD=LVTTL;
 # A3
 NET SD_CD         LOC="P119" | IOSTANDARD=LVTTL;
 # A4
-NET PS2_DAT1      LOC="P120" | IOSTANDARD=LVTTL;
+NET "ps2_dat1" LOC = P120;
+NET "ps2_dat1" IOSTANDARD = LVTTL;
+NET "ps2_dat1" PULLUP;
 # A5
-NET PS2_CLK1      LOC="P121" | IOSTANDARD=LVTTL;
+NET "ps2_clk1" LOC = P121;
+NET "ps2_clk1" IOSTANDARD = LVTTL;
+NET "ps2_clk1" PULLUP;
 # A6
 NET JOYSTICK1_5   LOC="P123" | IOSTANDARD=LVTTL;
 # A7
@@ -194,14 +198,12 @@ NET "rst" IOSTANDARD = LVTTL;
 NET "rst" DRIVE = 8;
 NET "rst" SLEW = FAST;
 
-# PlanAhead Generated physical constraints 
 
 NET "vga_r[3]" LOC = P47;
 NET "vga_r[2]" LOC = P50;
 NET "vga_r[1]" LOC = P55;
 NET "vga_r[0]" LOC = P57;
 
-# PlanAhead Generated IO constraints 
 
 NET "vga_r[3]" IOSTANDARD = LVTTL;
 NET "vga_r[2]" IOSTANDARD = LVTTL;
@@ -228,14 +230,12 @@ NET "vga_g[2]" SLEW = FAST;
 NET "vga_g[1]" SLEW = FAST;
 NET "vga_g[0]" SLEW = FAST;
 
-# PlanAhead Generated physical constraints 
 
 NET "vga_g[3]" LOC = P75;
 NET "vga_g[2]" LOC = P67;
 NET "vga_g[1]" LOC = P62;
 NET "vga_g[0]" LOC = P59;
 
-# PlanAhead Generated IO constraints 
 
 NET "vga_b[3]" IOSTANDARD = LVTTL;
 NET "vga_b[2]" IOSTANDARD = LVTTL;
@@ -250,7 +250,6 @@ NET "vga_b[2]" SLEW = FAST;
 NET "vga_b[1]" SLEW = FAST;
 NET "vga_b[0]" SLEW = FAST;
 
-# PlanAhead Generated physical constraints 
 
 NET "vga_b[3]" LOC = P93;
 NET "vga_b[2]" LOC = P83;
