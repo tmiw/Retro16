@@ -33,14 +33,14 @@ end
 always @(negedge ps2_clk_sync)
 begin
 	case (bitctr)
-	3'd0: 
+	4'd0: 
 		begin
 			// Start bit; should always be 0
 			bitctr <= bitctr + 1;
 			num_bits <= 0;
 			decoded_key <= 0;
 		end
-	3'd1, 3'd2, 3'd3, 3'd4, 3'd5, 3'd6, 3'd7, 3'd8:
+	4'd1, 4'd2, 4'd3, 4'd4, 4'd5, 4'd6, 4'd7, 4'd8:
 		begin
 			// Data bit.
 			decoded_key[bitctr - 1] <= ps2_data_sync;
@@ -48,13 +48,13 @@ begin
 				num_bits <= num_bits + 1;
 			bitctr <= bitctr + 1;
 		end
-	3'd9:
+	4'd9:
 		begin
 			// Parity bit, which we're ignoring for now.
 			bitctr <= bitctr + 1;
 			read_key <= 1;
 		end
-	3'd10:
+	4'd10:
 		begin
 			// Stop bit; should always be 1.
 			bitctr <= 0;
