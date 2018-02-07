@@ -48,14 +48,21 @@ begin
 	case (bitctr)
 	4'd0: 
 		begin
-			// Start bit; should always be 0
-			bitctr <= bitctr + 1;
-			num_bits <= 0;
-			decoded_key <= 0;
+			// Start bit; should always be 0. If not,
+			// we lost sync and need to stay in this state
+			// until we actually receive 0.
+			if (!ps2_data_sync)
+			begin
+				bitctr <= bitctr + 1;
+				num_bits <= 0;
+				decoded_key <= 0;
+			end
+			else
+				bitctr <= 0;
 		end
 	4'd1, 4'd2, 4'd3, 4'd4, 4'd5, 4'd6, 4'd7, 4'd8:
 		begin
-			// Data bit.
+			// Data bit. These arrive in LSB order.
 			decoded_key[bitctr - 1] <= ps2_data_sync;
 			if (ps2_data_sync)
 				num_bits <= num_bits + 1;
@@ -63,13 +70,23 @@ begin
 		end
 	4'd9:
 		begin
-			// Parity bit, which we're ignoring for now.
-			bitctr <= bitctr + 1;
-			read_key <= 1;
+			// Parity bit. 1 here indicates an even number of ones
+			// in the byte we just read (num_bits == 0), while 0 indicates
+			// an odd number of bits (num_bits == 1). If num_bits doesn't
+			// jive with this value, we should throw out this byte and
+			// wait for the next one.
+			if (~num_bits == ps2_data_sync)
+			begin
+				bitctr <= bitctr + 1;
+				read_key <= 1;
+			end
+			else
+				bitctr <= 0;
 		end
 	4'd10:
 		begin
-			// Stop bit; should always be 1.
+			// Stop bit; should always be 1. We're not verifying it
+			// here because we'll be resetting bitctr regardless.
 			bitctr <= 0;
 			read_key <= 0;
 		end
