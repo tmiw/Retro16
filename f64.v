@@ -78,14 +78,14 @@ ps2_keyboard keyboard(global_clk, ps2_clk1, ps2_dat1, decoded_key, read_key);
 always @(posedge read_key)
 begin
 	if (decoded_key[7:4] < 4'ha)
-		ascii_chars[15:7] <= 8'h30 + decoded_key[7:4];
+		ascii_chars[15:8] <= 8'h30 + {4'b0, decoded_key[7:4]};
 	else
-		ascii_chars[15:7] <= 8'h40 + (decoded_key[7:4] - 4'ha);
+		ascii_chars[15:8] <= 8'h37 + {4'b0, decoded_key[7:4]};
 		
 	if (decoded_key[3:0] < 4'ha)
-		ascii_chars[7:0] <= 8'h30 + decoded_key[3:0];
+		ascii_chars[7:0] <= 8'h30 + {4'b0, decoded_key[3:0]};
 	else
-		ascii_chars[7:0] <= 8'h40 + (decoded_key[3:0] - 4'ha);
+		ascii_chars[7:0] <= 8'h37 + {4'b0, decoded_key[3:0]};
 end
 
 endmodule

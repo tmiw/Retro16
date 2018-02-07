@@ -16,6 +16,7 @@ reg [3:0] bitctr = 0;
 reg num_bits = 0;
 reg ps2_clk_sync = 0;
 reg ps2_data_sync = 0;
+reg [9:0] clk_filter_ctr = 0;
 
 // Force both data and clock to high impedence. This signals
 // the keyboard that it can send data.
@@ -23,10 +24,22 @@ assign ps2_clk = 1'bz;
 assign ps2_data = 1'bz;
 
 // Synchronize the PS/2 clock line using the global clock.
-// Required in order for routing to succeed.
+// Required in order for routing to succeed. We also do some
+// filtering here and delay the clock to ensure that we read
+// the pulse ~15us (aka in the middle of the pulse) after it 
+// goes low. 
+// Assumption: 50Mhz main clock, thus 750 cycles for 15us.
 always @(posedge clk)
 begin
-	ps2_clk_sync <= ps2_clk;
+	if (ps2_clk_sync != ps2_clk)
+	begin
+		if (clk_filter_ctr == 750)
+			ps2_clk_sync <= ps2_clk;
+		else
+			clk_filter_ctr <= clk_filter_ctr + 1;
+	end
+	else
+		clk_filter_ctr <= 0;
 	ps2_data_sync <= ps2_data;
 end
 
