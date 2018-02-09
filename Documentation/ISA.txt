@@ -13,8 +13,25 @@ I/O / hardware access via access of specific memory locations:
    Display: 0xDA00-0xFFFF (extra reserved for future use)
             0xF82F-0xFFFF (80x25 text mode; only mode supported for v1)
        Byte 1: bbbb ffff
-	           bbbb      = Background color (0 = black, others TBD)
-			        ffff = Foreground color (0 = white, others TBD)
+	           bbbb      = Background color
+			   x000      = Black
+			   x001      = Blue
+			   x010      = Green
+			   x011      = Cyan
+			   x100      = Red
+			   x101      = Magenta
+			   x110      = Yellow
+			   x111      = White
+			        ffff = Foreground color
+	 	            bbbb = Background color
+	 			    x000 = Black
+	 			    x001 = Blue
+	 			    x010 = Green
+	 			    x011 = Cyan
+	 			    x100 = Red
+	 			    x101 = Magenta
+	 			    x110 = Yellow
+	 			    x111 = White
 	   Byte 2: ASCII code of letter to display
    Keyboard: TBD
    UART: TBD
