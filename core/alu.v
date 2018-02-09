@@ -14,7 +14,14 @@ always @(operand1 or operand2 or operation)
 begin
 	case (operation)
 		3'b000:	
-			result <= operand1 << operand2;
+		begin
+			if (operand2[15] == 1)
+			begin
+				result <= operand1 >> (~operand2 + 1);
+			end
+			else
+				result <= operand1 << operand2;
+			end
 		3'b100:	
 			result <= operand1 + operand2;
 		3'b101:	
