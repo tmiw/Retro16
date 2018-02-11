@@ -47,7 +47,7 @@ begin
 				data_out[7:0] <= sram_data;
 			else
 				data_out[15:8] <= sram_data;
-			current_byte <= current_byte + 1;
+			current_byte <= current_byte + 1'b1;
 		end
 	else if (write_en)
 	begin
@@ -64,13 +64,14 @@ begin
 			if (current_byte)
 				sram_data_out <= data_in[15:8];
 			else
-				sram_data_out <= data_in[15:8];
-			current_byte <= current_byte + 1;
+				sram_data_out <= data_in[7:0];
+			current_byte <= current_byte + 1'b1;
 		end
 	end
 	else 
 	begin
 		current_byte <= 0;
+		sram_addr <= 0;
 		sram_ce_inv <= 1;
 		sram_oe_inv <= 1;
 		sram_we_inv <= 1;

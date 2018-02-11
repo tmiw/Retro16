@@ -1,12 +1,10 @@
 module alu(
-	clk,
 	operand1,
 	operand2,
 	operation,
 	result
 );
 
-input clk;
 input [15:0] operand1;
 input [15:0] operand2;
 input [2:0] operation;
@@ -21,22 +19,40 @@ begin
 		begin
 			if (operand2[15] == 1)
 			begin
-				tempval <= ~operand2 + 1;
+				tempval <= ~operand2 + 16'b1;
 				result <= operand1 >> tempval;
 			end
 			else
+			begin
+				tempval <= 0;
 				result <= operand1 << operand2;
+			end
 		end
-		3'b100:	
+		3'b100:
+		begin
 			result <= operand1 + operand2;
+			tempval <= 0;
+		end
 		3'b101:	
+		begin
 			result <= operand1 & operand2;
+			tempval <= 0;
+		end
 		3'b110:	
+		begin
 			result <= operand1 | operand2;
+			tempval <= 0;
+		end
 		3'b111:	
+		begin
 			result <= ~operand1;
+			tempval <= 0;
+		end
 		default:
+		begin
 			result <= 0;
+			tempval <= 0;
+		end
 	endcase
 end
 

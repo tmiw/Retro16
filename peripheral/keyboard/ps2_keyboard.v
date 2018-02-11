@@ -51,14 +51,14 @@ begin
 			timeout_en <= 1;
 		end
 		else
-			clk_filter_ctr <= clk_filter_ctr + 1;
+			clk_filter_ctr <= clk_filter_ctr + 10'b1;
 	end
 	else
 	begin
 		clk_filter_ctr <= 0;
 		if (timeout_en)
 		begin
-			timeout_ctr <= timeout_ctr + 1;
+			timeout_ctr <= timeout_ctr + 11'b1;
 			if (timeout_ctr >= 1500)
 			begin
 				// Flip timed_out long enough for the always block below
@@ -91,7 +91,7 @@ begin
 				// until we actually receive 0.
 				if (!ps2_data_sync)
 				begin
-					bitctr <= bitctr + 1;
+					bitctr <= bitctr + 4'b1;
 					num_bits <= 0;
 					decoded_key <= 0;
 				end
@@ -103,8 +103,8 @@ begin
 				// Data bit. These arrive in LSB order.
 				decoded_key[bitctr - 1] <= ps2_data_sync;
 				if (ps2_data_sync)
-					num_bits <= num_bits + 1;
-				bitctr <= bitctr + 1;
+					num_bits <= num_bits + 1'b1;
+				bitctr <= bitctr + 4'b1;
 			end
 		4'd9:
 			begin
@@ -115,7 +115,7 @@ begin
 				// wait for the next one.
 				if (~num_bits == ps2_data_sync)
 				begin
-					bitctr <= bitctr + 1;
+					bitctr <= bitctr + 4'b1;
 					read_key <= 1;
 				end
 				else

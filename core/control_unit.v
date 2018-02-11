@@ -52,7 +52,6 @@ reg [15:0] instruction_reg;
 reg [2:0] current_state;
 
 decoder instruction_decoder(
-	clk,
 	instruction_reg,
 	cond_bit_out,
 	dest_reg,
@@ -65,7 +64,6 @@ decoder instruction_decoder(
 );
 
 alu processor_alu(
-	clk,
 	alu_operand1,
 	alu_operand2,
 	alu_operation,
@@ -91,7 +89,7 @@ begin
 			ram_read_en <= 1;
 			ram_write_en <= 0;
 			instruction_reg <= ram_data_in;
-			current_state <= current_state + 1;
+			current_state <= current_state + 3'b1;
 		end
 		1: begin
 			// Decode
@@ -99,11 +97,11 @@ begin
 			ram_write_en <= 0;
 			alu_operand1 <= left_register_out;
 			alu_operand2 <= right_register_num == 0 ? alu_offset : right_register_out;
-			current_state <= current_state + 1;
+			current_state <= current_state + 3'b1;
 		end
 		2: begin
 			// Execute
-			current_state <= current_state + 1;
+			current_state <= current_state + 3'b1;
 		end
 		3: begin
 			// Memory Access
@@ -114,7 +112,7 @@ begin
 				ram_address_in <= alu_result;
 				ram_data_out <= write_register_in;
 			end
-			current_state <= current_state + 1;
+			current_state <= current_state + 3'b1;
 		end
 		4: begin
 			// Writeback (to registers)
@@ -122,6 +120,10 @@ begin
 			begin
 				reg_write_en <= 1;
 				write_register_num <= dest_reg;
+				if (ram_should_read)
+					write_register_in <= ram_data_in;
+				else
+					write_register_in <= alu_result;
 			end
 			ram_read_en <= 0;
 			ram_write_en <= 0;

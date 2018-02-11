@@ -32,6 +32,8 @@ output sram_we;
 
 reg pixel_clk;
 wire global_clk;
+reg half_pixel_clk;
+reg core_clk;
 
 // Assert reset for ~8 clock cycles before enabling display.
 // Also, temporarily fill video RAM with hello message.
@@ -76,9 +78,17 @@ f64_clk_gen clock_generator(clk, global_clk, rst);
 
 // Assumption: 50MHz global clock. Dividing by 2 gives 25MHz,
 // which is the desired pixel clock for VGA 640x480@60Hz.
+// Core clock is 6.25MHz (50MHz/8), may potentially be able to
+// run faster depending on testing.
 always @(posedge global_clk)
 	pixel_clk <= pixel_clk + 1'b1;
 
+always @(posedge pixel_clk)
+	half_pixel_clk <= half_pixel_clk + 1'b1;
+
+always @(posedge half_pixel_clk)
+	core_clk <= core_clk + 1'b1;
+	
 vga_display display(global_clk, pixel_clk, initial_rst || rst, vga_hsync, vga_vsync, vga_r, vga_g, vga_b, video_ram_addr, video_ram_data, video_ram_we);
 
 wire [15:0] ram_address_in;
@@ -88,14 +98,19 @@ wire ram_read_en;
 wire ram_write_en;
 
 control_unit main_cpu(
-	global_clk, 
-	initial_rst || rst);
-
-memory_controller ram(
-	clk,
+	core_clk, 
+	initial_rst || rst,
 	ram_address_in,
 	ram_data_in,
 	ram_data_out,
+	ram_read_en,
+	ram_write_en);
+
+memory_controller ram(
+	global_clk,
+	ram_address_in,
+	ram_data_out,
+	ram_data_in,
 	ram_read_en,
 	ram_write_en,
 	sram_addr,

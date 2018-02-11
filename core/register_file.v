@@ -36,7 +36,7 @@ begin
 	if (write_en)
 	begin
 		reg_data[write_register_num] <= tmp_write_in;
-		cond_bits <= {tmp_write_in == 0, tmp_write_in > 0, tmp_write_in < 0};
+		cond_bits <= {tmp_write_in == 0, tmp_write_in > 0, tmp_write_in[15]};
 	end
 	
 	left_register_out <= reg_data[left_register_num];
