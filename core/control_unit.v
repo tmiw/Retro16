@@ -52,6 +52,7 @@ reg [15:0] instruction_reg;
 reg [2:0] current_state;
 
 decoder instruction_decoder(
+	clk,
 	instruction_reg,
 	cond_bit_out,
 	dest_reg,
@@ -64,6 +65,7 @@ decoder instruction_decoder(
 );
 
 alu processor_alu(
+	clk,
 	alu_operand1,
 	alu_operand2,
 	alu_operation,

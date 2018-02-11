@@ -1,4 +1,5 @@
 module decoder(
+	clk,
 	instruction,
 	cond_bits,
 	destination_reg,
@@ -10,6 +11,7 @@ module decoder(
 	ram_write
 );
 
+input clk;
 input [15:0] instruction;
 input [2:0] cond_bits;
 output reg [2:0] destination_reg;
