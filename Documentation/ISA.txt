@@ -3,9 +3,9 @@ Memory is word addressed, not byte addressed
 
 Registers:
    R0 = always 0
-   PC = Program Counter
-   SP = Stack Pointer
    R1, R2, R3, R4, R5
+   PC = Program Counter (R6)
+   SP = Stack Pointer (R7)
    Status bits (updated for all but branch based on value of destination register after operation):
       Positive, Negative, Zero
 
