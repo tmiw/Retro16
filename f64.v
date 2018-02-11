@@ -7,7 +7,12 @@ module f64 (
 	 vga_g,
 	 vga_b,
 	 ps2_dat1,
-	 ps2_clk1
+	 ps2_clk1,
+	 sram_addr,
+	 sram_data,
+	 sram_ce,
+	 sram_oe,
+	 sram_we
 );
 
 input clk;
@@ -19,6 +24,11 @@ output wire vga_vsync;
 output wire [3:0] vga_r;
 output wire [3:0] vga_g;
 output wire [3:0] vga_b;
+output wire [20:0] sram_addr;
+inout [7:0] sram_data;
+output sram_ce;
+output sram_oe;
+output sram_we;
 
 reg pixel_clk;
 wire global_clk;
@@ -71,7 +81,29 @@ always @(posedge global_clk)
 
 vga_display display(global_clk, pixel_clk, initial_rst || rst, vga_hsync, vga_vsync, vga_r, vga_g, vga_b, video_ram_addr, video_ram_data, video_ram_we);
 
-control_unit main_cpu(global_clk, initial_rst || rst);
+wire [15:0] ram_address_in;
+wire [15:0] ram_data_in;
+wire [15:0] ram_data_out;
+wire ram_read_en;
+wire ram_write_en;
+
+control_unit main_cpu(
+	global_clk, 
+	initial_rst || rst);
+
+memory_controller ram(
+	clk,
+	ram_address_in,
+	ram_data_in,
+	ram_data_out,
+	ram_read_en,
+	ram_write_en,
+	sram_addr,
+	sram_data,
+	sram_ce,
+	sram_oe,
+	sram_we
+);
 
 wire [7:0] decoded_key;
 wire read_key;
