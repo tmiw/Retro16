@@ -1,10 +1,13 @@
+`timescale 1ns/1ps
 module alu(
+	clk,
 	operand1,
 	operand2,
 	operation,
 	result
 );
 
+input clk;
 input [15:0] operand1;
 input [15:0] operand2;
 input [2:0] operation;

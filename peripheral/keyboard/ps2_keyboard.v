@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module ps2_keyboard(
 	clk,
 	ps2_clk,

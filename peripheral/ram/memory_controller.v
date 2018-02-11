@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module memory_controller(
 	clk,
 	address_in,
@@ -54,15 +55,14 @@ begin
 			16'h0000: data_out <= 16'hF82F; // const: 0xF82F
 			16'h0001: data_out <= 16'h8000; // const: 0x8000
 			16'h0100: data_out <= 16'h4400; // ld r1, r0, 0
-			16'h0101: data_out <= 16'h4800; // ld r2, r0, 1
-			16'h0102: data_out <= 16'h2301; // add r3, r0, 1
-			16'h0103: data_out <= 16'h0468; // lsh r4, r3, 8
-			16'h0104: data_out <= 16'h6600; // st r1, r4, 0
-			16'h0105: data_out <= 16'h8ffb; // bru 0x0100
+			16'h0101: data_out <= 16'h4801; // ld r2, r0, 1
+			16'h0102: data_out <= 16'h6500; // st r1, r2, 0
+			16'h0103: data_out <= 16'h8ffd; // bru 0x0100
 			default: data_out <= 0;
 			endcase
 		end
 		else
+		begin
 			sram_addr <= {4'b0, address_in, current_byte};
 			sram_ce_inv <= 0;
 			sram_oe_inv <= 0;
@@ -73,6 +73,7 @@ begin
 				data_out[15:8] <= sram_data;
 			current_byte <= current_byte + 1'b1;
 		end
+	end
 	else if (write_en)
 	begin
 		if (address_in >= 16'hC000)

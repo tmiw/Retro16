@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module control_unit(
 	clk,
 	rst,
@@ -52,6 +53,7 @@ reg [15:0] instruction_reg = 0;
 reg [2:0] current_state = 0;
 
 decoder instruction_decoder(
+	clk,
 	instruction_reg,
 	cond_bit_out,
 	dest_reg,
@@ -64,6 +66,7 @@ decoder instruction_decoder(
 );
 
 alu processor_alu(
+	clk,
 	alu_operand1,
 	alu_operand2,
 	alu_operation,
@@ -88,19 +91,19 @@ begin
 			ram_address_in <= pc_register_out;
 			ram_read_en <= 1;
 			ram_write_en <= 0;
-			instruction_reg <= ram_data_in;
 			current_state <= current_state + 3'b1;
 		end
 		1: begin
 			// Decode
 			ram_read_en <= 0;
 			ram_write_en <= 0;
-			alu_operand1 <= left_register_out;
-			alu_operand2 <= right_register_num == 0 ? alu_offset : right_register_out;
+			instruction_reg <= ram_data_in;
 			current_state <= current_state + 3'b1;
 		end
 		2: begin
 			// Execute
+			alu_operand1 <= left_register_out;
+			alu_operand2 <= right_register_num == 0 ? alu_offset : right_register_out;
 			current_state <= current_state + 3'b1;
 		end
 		3: begin
@@ -138,7 +141,7 @@ begin
 		end
 		5: begin
 			// PC increment (if necessary)
-			if (!ram_should_write && dest_reg != 6)
+			if (dest_reg != 6)
 			begin
 				write_register_num <= 6;
 				write_register_in <= pc_register_out + 1;

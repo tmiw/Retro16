@@ -1,4 +1,6 @@
+`timescale 1ns/1ps
 module decoder(
+	clk,
 	instruction,
 	cond_bits,
 	destination_reg,
@@ -10,17 +12,18 @@ module decoder(
 	ram_write
 );
 
+input clk;
 input [15:0] instruction;
 input [2:0] cond_bits;
-output reg [2:0] destination_reg;
-output reg [2:0] first_reg;
-output reg [2:0] second_reg;
-output reg [15:0] offset;
-output reg [2:0] alu_op;
-output reg ram_read;
-output reg ram_write;
+output reg [2:0] destination_reg = 0;
+output reg [2:0] first_reg = 0;
+output reg [2:0] second_reg = 0;
+output reg [15:0] offset = 0;
+output reg [2:0] alu_op = 0;
+output reg ram_read = 0;
+output reg ram_write = 0;
 
-always @(instruction or cond_bits)
+always @(instruction)
 begin
 	if (instruction[15])
 	begin
