@@ -71,6 +71,8 @@ always @(posedge global_clk)
 
 vga_display display(global_clk, pixel_clk, initial_rst || rst, vga_hsync, vga_vsync, vga_r, vga_g, vga_b, video_ram_addr, video_ram_data, video_ram_we);
 
+control_unit main_cpu(global_clk, initial_rst || rst);
+
 wire [7:0] decoded_key;
 wire read_key;
 ps2_keyboard keyboard(global_clk, ps2_clk1, ps2_dat1, decoded_key, read_key);

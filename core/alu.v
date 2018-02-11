@@ -5,10 +5,10 @@ module alu(
 	result
 );
 
-input operand1[15:0];
-input operand2[15:0];
-input operation[2:0];
-output result[15:0];
+input [15:0] operand1;
+input [15:0] operand2;
+input [2:0] operation;
+output reg [15:0] result;
 
 always @(operand1 or operand2 or operation)
 begin
