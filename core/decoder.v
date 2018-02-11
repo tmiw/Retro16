@@ -74,15 +74,26 @@ begin
 		default:	offset <= 1;
 		endcase
 	end
-	else if (instruction[15:14] == 3'b01)
+	else if (instruction[15:13] == 3'b010)
 	begin
-		// Load/Store
+		// Load
 		destination_reg <= instruction[12:10];
 		first_reg <= instruction[9:7];
 		second_reg <= 0; // R0
 		offset <= {{9{instruction[6]}}, instruction[6:0]};
-		ram_read <= ~instruction[13];
-		ram_write <= instruction[13];
+		ram_read <= 1;
+		ram_write <= 0;
+		alu_op <= 3'b100; // Add
+	end
+	else if (instruction[15:13] == 3'b011)
+	begin
+		// Store
+		destination_reg <= instruction[9:7];
+		first_reg <= instruction[12:10];
+		second_reg <= 0; // R0
+		offset <= {{9{instruction[6]}}, instruction[6:0]};
+		ram_read <= 0;
+		ram_write <= 1;
 		alu_op <= 3'b100; // Add
 	end
 	else if (instruction[15:11] == 5'b0)

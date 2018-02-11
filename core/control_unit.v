@@ -48,8 +48,8 @@ wire [15:0] alu_offset;
 wire ram_should_write;
 wire ram_should_read;
 wire [2:0] dest_reg;
-reg [15:0] instruction_reg;
-reg [2:0] current_state;
+reg [15:0] instruction_reg = 0;
+reg [2:0] current_state = 0;
 
 decoder instruction_decoder(
 	instruction_reg,
@@ -105,11 +105,18 @@ begin
 		end
 		3: begin
 			// Memory Access
-			if (ram_should_write || ram_should_read)
+			if (ram_should_read)
 			begin
-				ram_read_en <= ram_should_read;
-				ram_write_en <= ram_should_write;
+				ram_read_en <= 1;
+				ram_write_en <= 0;
 				ram_address_in <= alu_result;
+			end
+			else if (ram_should_write)
+			begin
+				ram_read_en <= 0;
+				ram_write_en <= 1;
+				ram_address_in <= alu_result;
+				write_register_num <= dest_reg;
 				ram_data_out <= write_register_in;
 			end
 			current_state <= current_state + 3'b1;
@@ -127,6 +134,16 @@ begin
 			end
 			ram_read_en <= 0;
 			ram_write_en <= 0;
+			current_state <= current_state + 3'b1;
+		end
+		5: begin
+			// PC increment (if necessary)
+			if (!ram_should_write && dest_reg != 6)
+			begin
+				write_register_num <= 6;
+				write_register_in <= pc_register_out + 1;
+				reg_write_en <= 1;
+			end
 			current_state <= 0;
 		end
 		default: current_state <= 0;

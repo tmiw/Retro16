@@ -30,22 +30,23 @@ output sram_ce;
 output sram_oe;
 output sram_we;
 
-reg pixel_clk;
+reg pixel_clk = 0;
 wire global_clk;
-reg half_pixel_clk;
-reg core_clk;
+reg half_pixel_clk = 0;
+reg core_clk = 0;
 
 // Assert reset for ~8 clock cycles before enabling display.
 // Also, temporarily fill video RAM with hello message.
 reg initial_rst = 1;
-reg [11:0] video_ram_addr = 0;
-reg [15:0] video_ram_data = 0;
-reg video_ram_we = 0;
+wire [11:0] video_ram_addr;
+wire [15:0] video_ram_data;
+wire video_ram_we;
+reg [4:0] reset_ctr = 0;
 reg [15:0] ascii_chars = 16'h3030;
 
-always @(posedge global_clk)
+always @(posedge core_clk)
 begin
-	if (video_ram_addr < 80*25)
+	/*if (video_ram_addr < 80*25)
 	begin
 		case (video_ram_addr)
 		0:	video_ram_data <= 16'h0748; // H
@@ -63,9 +64,10 @@ begin
 		video_ram_addr <= video_ram_addr + 11'd1;
 	end
 	else
-		video_ram_addr <= 0;
-		
-	if (initial_rst && video_ram_addr >= 8)
+		video_ram_addr <= 0;*/
+	
+	reset_ctr <= reset_ctr + 1;
+	if (initial_rst && reset_ctr >= 8)
 	begin
 		initial_rst <= 0;
 	end
@@ -117,7 +119,10 @@ memory_controller ram(
 	sram_data,
 	sram_ce,
 	sram_oe,
-	sram_we
+	sram_we,
+	video_ram_addr,
+	video_ram_data,
+	video_ram_we
 );
 
 wire [7:0] decoded_key;
