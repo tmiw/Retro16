@@ -91,9 +91,9 @@ begin
 	else if (instruction[15:13] == 3'b011)
 	begin
 		// Store
-		destination_reg <= instruction[9:7];
+		destination_reg <= 0; // R0
 		first_reg <= instruction[12:10];
-		second_reg <= 0; // R0
+		second_reg <= instruction[9:7];
 		offset <= {{9{instruction[6]}}, instruction[6:0]};
 		ram_read <= 0;
 		ram_write <= 1;

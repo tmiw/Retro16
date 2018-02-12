@@ -103,7 +103,10 @@ begin
 		2: begin
 			// Execute
 			alu_operand1 <= left_register_out;
-			alu_operand2 <= right_register_num == 0 ? alu_offset : right_register_out;
+			if (ram_should_write || ram_should_read)
+				alu_operand2 <= alu_offset;
+			else
+				alu_operand2 <= right_register_num == 0 ? alu_offset : right_register_out;
 			current_state <= current_state + 3'b1;
 		end
 		3: begin
@@ -120,7 +123,7 @@ begin
 				ram_write_en <= 1;
 				ram_address_in <= alu_result;
 				write_register_num <= dest_reg;
-				ram_data_out <= write_register_in;
+				ram_data_out <= right_register_out;
 			end
 			current_state <= current_state + 3'b1;
 		end
