@@ -147,9 +147,12 @@ begin
 				write_register_in <= pc_register_out + 1;
 				reg_write_en <= 1;
 			end
-			current_state <= 0;
+			current_state <= current_state + 3'b1;
 		end
-		default: current_state <= 0;
+		default: begin
+			// No-op so that everything stabilizes.
+			current_state <= current_state + 3'b1;
+		end
 		endcase
 	end
 end
