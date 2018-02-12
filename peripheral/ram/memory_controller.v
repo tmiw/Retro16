@@ -50,14 +50,14 @@ begin
 		else if (address_in <= 16'h0105)
 		begin
 			// Simple program ROM for testing
-			// Prints "Y" at (0,0) and repeats forever.
+			// Prints "Y" at (0,0) and stops.
 			case (address_in)
 			16'h0000: data_out <= 16'hF82F; // const: 0xF82F
 			16'h0001: data_out <= 16'h0759; // const: 0x0759
 			16'h0100: data_out <= 16'h4400; // ld r1, r0, 0
 			16'h0101: data_out <= 16'h4801; // ld r2, r0, 1
 			16'h0102: data_out <= 16'h6500; // st r1, r2, 0
-			16'h0103: data_out <= 16'h8ffd; // bru 0x0100
+			16'h0103: data_out <= 16'h8fff; // br 0x0102
 			default: data_out <= 0;
 			endcase
 		end
