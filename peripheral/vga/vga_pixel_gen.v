@@ -30,16 +30,33 @@ assign ram_addr_past_80x25 = pixel_row >= (25*16);
 reg [15:0] rom_output_odd;
 reg [15:0] rom_output_even;
 
+reg [15:0] next_col;
+reg [15:0] next_row;
+
 always @(posedge pixel_clk)
 begin
 	// Halfway through rendering the current character, we want to start preloading
 	// the next character's row of pixels from ROM. This preloaded data should go
 	// into a register that's not currently being used for rendering. Once we cross
 	// over into the next character, we swap the buffers for the next round.
-	if (pixel_col[2] == 1'b1)
+	if (!data_reset)
 	begin
-		ram_addr <= data_reset ? 12'd0 : 1 + (pixel_col / 16'd8) + ((pixel_row / 16'd16) * 16'd80);
-		if (((pixel_col + 4) / 16) & 1'b1)
+		if ((pixel_col + 8) >= 640)
+		begin
+			next_col <= 0;
+			if ((pixel_row + 1) >= 480)
+				next_row <= 0;
+			else
+				next_row <= pixel_row + 1;
+		end
+		else
+		begin
+			next_row <= pixel_row;
+			next_col <= pixel_col + 8;
+		end
+		
+		ram_addr <= (next_col / 16'd8) + ((next_row / 16'd16) * 16'd80);
+		if ((next_col / 8) & 1'b1)
 		begin
 			rom_output_even[15:8] <= ram_contents[15:8];
 			rom_output_even[7:0] <= pixel_en;
@@ -51,7 +68,7 @@ begin
 		end
 	end
 	
-	if ((pixel_col / 16) & 1'b1)
+	if ((pixel_col / 8) & 1'b1)
 	begin
 		vga_r <= {4{data_reset || ram_addr_past_80x25 ? 1'b0 : (!rom_output_even[pixel_col[2:0]] ? rom_output_even[14] : rom_output_even[10])}};
 		vga_g <= {4{data_reset || ram_addr_past_80x25 ? 1'b0 : (!rom_output_even[pixel_col[2:0]] ? rom_output_even[13] : rom_output_even[9])}};
