@@ -13,7 +13,8 @@ module f64 (
 	 sram_data,
 	 sram_ce,
 	 sram_oe,
-	 sram_we
+	 sram_we,
+	 rs232_tx
 );
 
 input clk;
@@ -30,6 +31,7 @@ inout [7:0] sram_data;
 output sram_ce;
 output sram_oe;
 output sram_we;
+output rs232_tx;
 
 reg pixel_clk = 0;
 wire global_clk;
@@ -141,6 +143,25 @@ begin
 		ascii_chars[7:0] <= 8'h30 + {4'b0, decoded_key[3:0]};
 	else
 		ascii_chars[7:0] <= 8'h37 + {4'b0, decoded_key[3:0]};
+end
+
+// Print "Y" once a second. This is to test the RS-232 tx related modules.
+wire baud_clk;
+reg [31:0] second_ctr = 0;
+reg [7:0] byte_to_tx = 8'h59;
+wire tx_byte_now;
+
+baud_generator rs232_baud(global_clk, baud_clk);
+byte_transmitter rs232_transmitter(global_clk, baud_clk, byte_to_tx, tx_byte_now, rs232_tx);
+
+assign tx_byte_now = (second_ctr >= 49500000);
+
+always @(posedge global_clk)
+begin
+	if (second_ctr == 50000000)
+		second_ctr <= 0;
+	else
+		second_ctr <= second_ctr + 1;
 end
 
 endmodule
