@@ -21,25 +21,31 @@ begin
 	case (current_state)
 	0: begin
 		// Idle state; stay "high" unless told to transmit.
-		uart_tx_pin <= 0;
-		if (begin_tx && baud_clk)
+		uart_tx_pin <= 1;
+		if (begin_tx)
 			current_state <= 1;
 	end
 	1: begin
-		// Start bit; always 1 (low on Papillo board).
+		// Synchronize on baud clock before beginning transmit.
 		uart_tx_pin <= 1;
 		if (baud_clk)
 			current_state <= 2;
 	end
-	2, 3, 4, 5, 6, 7, 8, 9: begin
+	2: begin
+		// Start bit; always 0.
+		uart_tx_pin <= 0;
+		if (baud_clk)
+			current_state <= 3;
+	end
+	3, 4, 5, 6, 7, 8, 9, 10: begin
 		// Data bits, LSB first.
-		uart_tx_pin <= byte_to_transmit[current_state - 2];
+		uart_tx_pin <= byte_to_transmit[current_state - 3];
 		if (baud_clk)
 			current_state <= current_state + 1;
 	end
-	10: begin
+	11: begin
 		// Stop bit, always high.
-		uart_tx_pin <= 0;
+		uart_tx_pin <= 1;
 		if (baud_clk)
 			current_state <= 0;
 	end

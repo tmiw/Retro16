@@ -154,14 +154,14 @@ wire tx_byte_now;
 baud_generator rs232_baud(global_clk, baud_clk);
 byte_transmitter rs232_transmitter(global_clk, baud_clk, byte_to_tx, tx_byte_now, rs232_tx);
 
-assign tx_byte_now = (second_ctr >= 49500000);
+assign tx_byte_now = (second_ctr == 0);
 
-always @(posedge global_clk)
+always @(posedge baud_clk)
 begin
-	if (second_ctr == 50000000)
-		second_ctr <= 0;
+	if (second_ctr == 0)
+		second_ctr <= 115200;
 	else
-		second_ctr <= second_ctr + 1;
+		second_ctr <= second_ctr - 1;
 end
 
 endmodule
