@@ -14,7 +14,8 @@ module f64 (
 	 sram_ce,
 	 sram_oe,
 	 sram_we,
-	 rs232_tx
+	 rs232_tx,
+	 rs232_rx
 );
 
 input clk;
@@ -32,6 +33,7 @@ output sram_ce;
 output sram_oe;
 output sram_we;
 output rs232_tx;
+input rs232_rx;
 
 reg pixel_clk = 0;
 wire global_clk;
@@ -145,16 +147,31 @@ begin
 		ascii_chars[7:0] <= 8'h37 + {4'b0, decoded_key[3:0]};
 end
 
-// Print "Y" once a second. This is to test the RS-232 tx related modules.
+// Echo received RS-232 data. This is to test the RS-232 tx/rx related modules.
 wire baud_clk;
+wire baud_oversample_clk;
 reg [31:0] second_ctr = 0;
-reg [7:0] byte_to_tx = 8'h59;
-wire tx_byte_now;
+reg [7:0] byte_to_tx = 0; //8'h59;
+reg tx_byte_now;
+wire byte_received_flag;
+wire [7:0] byte_received;
 
-baud_generator rs232_baud(global_clk, baud_clk);
+baud_generator rs232_baud(global_clk, baud_clk, baud_oversample_clk);
 byte_transmitter rs232_transmitter(global_clk, baud_clk, byte_to_tx, tx_byte_now, rs232_tx);
+byte_receiver rx232_receiver(global_clk, baud_oversample_clk, byte_received_flag, byte_received, rs232_rx);
 
-assign tx_byte_now = (second_ctr == 0);
+always @(posedge global_clk)
+begin
+	if (byte_received_flag)
+	begin
+		byte_to_tx <= byte_received;
+		tx_byte_now <= 1;
+	end
+	else
+		tx_byte_now <= 0;
+end
+
+/*assign tx_byte_now = (second_ctr == 0);
 
 always @(posedge baud_clk)
 begin
@@ -162,6 +179,6 @@ begin
 		second_ctr <= 115200;
 	else
 		second_ctr <= second_ctr - 1;
-end
+end*/
 
 endmodule
