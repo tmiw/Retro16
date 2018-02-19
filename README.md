@@ -10,6 +10,9 @@ This is definitely a work in progress and may be more than someone who's just ge
 
 + VGA display component (80x25 text mode with 8 foreground and background colors @ 640x480)
 + Find a bigger FPGA (now using the Papilio Duo + Computing Shield for development)
++ RS-232 I/O
++ PS/2 I/O
++ Implemented initial version of ISA
 
 ## In progress
 
@@ -17,7 +20,17 @@ This is definitely a work in progress and may be more than someone who's just ge
 
 ## To do
 
-+ Implement ISA
++ Interrupt controller
++ Link PS/2 and RS-232 components to core
++ Assembler
++ Performance/timing optimizations
+
+## Possible future enhancements
+
++ Sound output
++ Joystick input
++ C compiler support
++ Memory segment support (enabling support for more than 64K words/128KB RAM)
 
 # How to contribute
 
