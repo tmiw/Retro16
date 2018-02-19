@@ -40,43 +40,8 @@ wire global_clk;
 reg half_pixel_clk = 0;
 reg core_clk = 0;
 
-// Assert reset for ~8 clock cycles before enabling display.
-// Also, temporarily fill video RAM with hello message.
-reg initial_rst = 1;
-wire [11:0] video_ram_addr;
-wire [15:0] video_ram_data;
-wire video_ram_we;
-reg [4:0] reset_ctr = 0;
-reg [15:0] ascii_chars = 16'h3030;
-
-always @(posedge core_clk)
-begin
-	/*if (video_ram_addr < 80*25)
-	begin
-		case (video_ram_addr)
-		0:	video_ram_data <= 16'h0748; // H
-		1: video_ram_data <= 16'h0765; // e
-		2: video_ram_data <= 16'h076c; // l
-		3: video_ram_data <= 16'h076c; // l
-		4: video_ram_data <= 16'h076f; // o
-		
-		// For keyboard testing
-		8: video_ram_data <= {8'h07, ascii_chars[15:8]};
-		9: video_ram_data <= {8'h07, ascii_chars[7:0]};
-		default: video_ram_data <= 16'h0700;
-		endcase
-		video_ram_we <= 1; //(video_ram_addr >= 0 && video_ram_addr < 5) || (video_ram_addr >= 160 && video_ram_addr < 162);
-		video_ram_addr <= video_ram_addr + 11'd1;
-	end
-	else
-		video_ram_addr <= 0;*/
-	
-	reset_ctr <= reset_ctr + 1;
-	if (initial_rst && reset_ctr >= 8)
-	begin
-		initial_rst <= 0;
-	end
-end
+// For asserting reset on the core while the loader's operating.
+wire initial_rst;
 
 // Papilio Duo has a 32MHz clock. This needs to be upconverted
 // to 50MHz by use of a PLL in order to drive the VGA display
@@ -96,23 +61,46 @@ always @(posedge pixel_clk)
 always @(posedge half_pixel_clk)
 	core_clk <= core_clk + 1'b1;
 	
-vga_display display(global_clk, pixel_clk, initial_rst || rst, vga_hsync, vga_vsync, vga_r, vga_g, vga_b, video_ram_addr, video_ram_data, video_ram_we);
+// The VGA display, which shows the output of our programs.
+wire [11:0] video_ram_addr;
+wire [15:0] video_ram_data;
+wire video_ram_we;
 
+vga_display display(
+	global_clk, pixel_clk, ~initial_rst || rst, 
+	vga_hsync, vga_vsync, vga_r, vga_g, vga_b, 
+	video_ram_addr, video_ram_data, video_ram_we);
+
+// Helper wires to allow for multiplexing RAM between the loader and core.
 wire [15:0] ram_address_in;
 wire [15:0] ram_data_in;
 wire [15:0] ram_data_out;
 wire ram_read_en;
 wire ram_write_en;
 
+wire [15:0] loader_ram_address_in;
+wire [15:0] loader_ram_data_out;
+wire loader_ram_write_en;
+
+wire [15:0] core_ram_address_in;
+wire [15:0] core_ram_data_out;
+wire core_ram_write_en;
+
+assign ram_address_in = ~initial_rst ? loader_ram_address_in : core_ram_address_in;
+assign ram_data_out = ~initial_rst ? loader_ram_data_out : core_ram_data_out;
+assign ram_write_en = ~initial_rst ? loader_ram_write_en : core_ram_write_en;
+
+// The main CPU core. 
 control_unit main_cpu(
 	core_clk, 
-	initial_rst || rst,
-	ram_address_in,
+	~initial_rst || rst,
+	core_ram_address_in,
 	ram_data_in,
-	ram_data_out,
+	core_ram_data_out,
 	ram_read_en,
-	ram_write_en);
+	core_ram_write_en);
 
+// Proxy to the Papilio's SRAM chip and I/O peripherals.
 memory_controller ram(
 	global_clk,
 	ram_address_in,
@@ -130,55 +118,31 @@ memory_controller ram(
 	video_ram_we
 );
 
+// TBD: link to interrupt system
 wire [7:0] decoded_key;
 wire read_key;
 ps2_keyboard keyboard(global_clk, ps2_clk1, ps2_dat1, decoded_key, read_key);
 
-always @(posedge read_key)
-begin
-	if (decoded_key[7:4] < 4'ha)
-		ascii_chars[15:8] <= 8'h30 + {4'b0, decoded_key[7:4]};
-	else
-		ascii_chars[15:8] <= 8'h37 + {4'b0, decoded_key[7:4]};
-		
-	if (decoded_key[3:0] < 4'ha)
-		ascii_chars[7:0] <= 8'h30 + {4'b0, decoded_key[3:0]};
-	else
-		ascii_chars[7:0] <= 8'h37 + {4'b0, decoded_key[3:0]};
-end
-
-// Echo received RS-232 data. This is to test the RS-232 tx/rx related modules.
+// Load program on initial boot by receiving a binary file containing
+// the system's non-I/O RAM and committing it to SRAM. Once received,
+// the system will enable the main core.
 wire baud_clk;
 wire baud_oversample_clk;
 reg [31:0] second_ctr = 0;
-reg [7:0] byte_to_tx = 0; //8'h59;
+reg [7:0] byte_to_tx = 0;
 reg tx_byte_now;
 wire byte_received_flag;
 wire [7:0] byte_received;
 
-baud_generator rs232_baud(global_clk, baud_clk, baud_oversample_clk);
-byte_transmitter rs232_transmitter(global_clk, baud_clk, byte_to_tx, tx_byte_now, rs232_tx);
-byte_receiver rx232_receiver(global_clk, baud_oversample_clk, byte_received_flag, byte_received, rs232_rx);
-
-always @(posedge global_clk)
-begin
-	if (byte_received_flag)
-	begin
-		byte_to_tx <= byte_received;
-		tx_byte_now <= 1;
-	end
-	else
-		tx_byte_now <= 0;
-end
-
-/*assign tx_byte_now = (second_ctr == 0);
-
-always @(posedge baud_clk)
-begin
-	if (second_ctr == 0)
-		second_ctr <= 115200;
-	else
-		second_ctr <= second_ctr - 1;
-end*/
+program_loader loader(
+	global_clk,
+	core_clk,
+	rst,
+	loader_ram_address_in,
+	loader_ram_data_out,
+	loader_ram_write_en,
+	rs232_tx,
+	rs232_rx,
+	initial_rst);
 
 endmodule
