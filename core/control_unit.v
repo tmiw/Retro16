@@ -26,6 +26,7 @@ wire [15:0] pc_register_out;
 reg [15:0] write_register_in;
 wire [2:0] cond_bit_out;
 reg reg_write_en;
+reg active_bank;
 
 register_file regs(
 	clk,
@@ -37,7 +38,8 @@ register_file regs(
 	cond_bit_out,
 	write_register_num,
 	write_register_in,
-	reg_write_en
+	reg_write_en,
+	active_bank
 );
 
 reg [15:0] alu_operand1;
@@ -80,6 +82,7 @@ begin
 		write_register_num <= 6;
 		write_register_in <= 16'h0100; // PC on boot = 256
 		reg_write_en <= 1;
+		active_bank <= 0; // TODO: link to interrupt controller
 		current_state <= 0;
 	end
 	else
