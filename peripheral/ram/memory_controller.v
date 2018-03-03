@@ -13,7 +13,9 @@ module memory_controller(
 	sram_we_inv,
 	video_ram_addr,
 	video_ram_data,
-	video_ram_we
+	video_ram_we,
+	kbd_ram_addr,
+	kbd_ram_data
 );
 
 input clk;
@@ -33,6 +35,9 @@ output reg [11:0] video_ram_addr;
 output reg [15:0] video_ram_data = 0;
 output reg video_ram_we = 0;
 
+output reg [15:0] kbd_ram_addr;
+input [15:0] kbd_ram_data;
+
 reg [7:0] sram_data_out;
 assign sram_data = !sram_oe_inv ? 8'bz : sram_data_out;
 
@@ -45,7 +50,13 @@ begin
 		if (address_in >= 16'hC000)
 		begin
 			// I/O area: 0xC000-0xFFFF
-			data_out <= 0;
+			if (address_in == 16'hC0000)
+			begin
+				kbd_ram_addr <= 0;
+				data_out <= kbd_ram_data;
+			end
+			else
+				data_out <= 0;
 		end
 		else
 		begin

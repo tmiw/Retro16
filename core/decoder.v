@@ -9,7 +9,8 @@ module decoder(
 	offset,
 	alu_op,
 	ram_read,
-	ram_write
+	ram_write,
+	should_interrupt_ack
 );
 
 input clk;
@@ -22,6 +23,7 @@ output reg [15:0] offset = 0;
 output reg [2:0] alu_op = 0;
 output reg ram_read = 0;
 output reg ram_write = 0;
+output reg should_interrupt_ack = 0;
 
 always @(instruction)
 begin
@@ -33,6 +35,7 @@ begin
 		second_reg <= 0; // R0
 		ram_read <= 0;
 		ram_write <= 0;
+		should_interrupt_ack <= 0;
 		alu_op <= 3'b100; // Add
 		case (instruction[14:12])
 		3'b000:	begin
@@ -86,6 +89,7 @@ begin
 		offset <= {{9{instruction[6]}}, instruction[6:0]};
 		ram_read <= 1;
 		ram_write <= 0;
+		should_interrupt_ack <= 0;
 		alu_op <= 3'b100; // Add
 	end
 	else if (instruction[15:13] == 3'b011)
@@ -97,6 +101,7 @@ begin
 		offset <= {{9{instruction[6]}}, instruction[6:0]};
 		ram_read <= 0;
 		ram_write <= 1;
+		should_interrupt_ack <= 0;
 		alu_op <= 3'b100; // Add
 	end
 	else if (instruction[15:11] == 5'b0)
@@ -109,6 +114,7 @@ begin
 		alu_op <= 3'b000; // Shift
 		ram_read <= 0;
 		ram_write <= 0;
+		should_interrupt_ack <= 0;
 	end
 	else if (instruction[15:11] == 5'b00001)
 	begin
@@ -120,6 +126,7 @@ begin
 		alu_op <= {1'b1, instruction[10:9]};
 		ram_read <= 0;
 		ram_write <= 0;
+		should_interrupt_ack <= 0;
 	end
 	else if (instruction[15:13] == 3'b001)
 	begin
@@ -131,10 +138,35 @@ begin
 		alu_op <= {1'b1, instruction[12:11]};
 		ram_read <= 0;
 		ram_write <= 0;
+		should_interrupt_ack <= 0;
+	end
+	else if (instruction == 16'h0000)
+	begin
+		// No-op
+		destination_reg <= 0; // R0
+		first_reg <= 0; // R0
+		second_reg <= 0; // R0
+		offset <= 0;
+		alu_op <= 3'b100;
+		ram_read <= 0;
+		ram_write <= 0;
+		should_interrupt_ack <= 0;
+	end
+	else if (instruction == 16'h0001)
+	begin
+		// End interrupt processing
+		destination_reg <= 0; // R0
+		first_reg <= 0; // R0
+		second_reg <= 0; // R0
+		offset <= 0;
+		alu_op <= 3'b100;
+		ram_read <= 0;
+		ram_write <= 0;
+		should_interrupt_ack <= 1;
 	end
 	else
 	begin
-		// No-op
+		// Default is no-op
 		destination_reg <= 0; // R0
 		first_reg <= 0; // R0
 		second_reg <= 0; // R0
