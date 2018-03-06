@@ -65,6 +65,17 @@ Do we want to support interrupts?
        xx x         = Data value register
            yyy yyyy = Offset from location register in words
 
+001p pddd xxxy yyyy = Arithmetric w/register + const operands
+   0 0              = ADD
+   0 1              = AND
+   1 0              = OR
+   1 1              = NOT
+      ddd           = Destination register
+	      xxx       = First operand register
+		     y yyyy = Constant value (ignored for NOT)
+
+0001 xxxx xxxx xxxx = Reserved
+
 0000 0ddd xxxy yyyy = Shift
       ddd           = Destination register
           xxx       = First register
@@ -78,14 +89,3 @@ Do we want to support interrupts?
 	    d dd        = Destination register
 		    xx x    = First operand register
 			    yyy = Second operand register (ignored for NOT)
-
-001p pddd xxxy yyyy = Arithmetric w/register + const operands
-   0 0              = ADD
-   0 1              = AND
-   1 0              = OR
-   1 1              = NOT
-      ddd           = Destination register
-	      xxx       = First operand register
-		     y yyyy = Constant value (ignored for NOT)
-
-All other byte formats reserved for future use.
