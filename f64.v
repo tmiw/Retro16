@@ -86,6 +86,14 @@ wire [15:0] core_ram_address_in;
 wire [15:0] core_ram_data_out;
 wire core_ram_write_en;
 
+wire interrupt_en;
+wire interrupt_num;
+wire interrupt_ack;
+
+wire keyboard_interrupt;
+wire [15:0] keyboard_ram_addr;
+wire [15:0] keyboard_ram_data;
+
 assign ram_address_in = ~initial_rst ? loader_ram_address_in : core_ram_address_in;
 assign ram_data_out = ~initial_rst ? loader_ram_data_out : core_ram_data_out;
 assign ram_write_en = ~initial_rst ? loader_ram_write_en : core_ram_write_en;
@@ -98,7 +106,10 @@ control_unit main_cpu(
 	ram_data_in,
 	core_ram_data_out,
 	ram_read_en,
-	core_ram_write_en);
+	core_ram_write_en,
+	interrupt_en,
+	interrupt_num,
+	interrupt_ack);
 
 // Proxy to the Papilio's SRAM chip and I/O peripherals.
 memory_controller ram(
@@ -115,13 +126,19 @@ memory_controller ram(
 	sram_we,
 	video_ram_addr,
 	video_ram_data,
-	video_ram_we
+	video_ram_we,
+	keyboard_ram_addr,
+	keyboard_ram_data
 );
 
 // TBD: link to interrupt system
-wire [7:0] decoded_key;
-wire read_key;
-ps2_keyboard keyboard(global_clk, ps2_clk1, ps2_dat1, decoded_key, read_key);
+keyboard_handler kbd(
+	global_clk, 
+	ps2_clk1, 
+	ps2_dat1,
+	keyboard_ram_addr,
+	keyboard_ram_data,
+	keyboard_interrupt);
 
 // Load program on initial boot by receiving a binary file containing
 // the system's non-I/O RAM and committing it to SRAM. Once received,

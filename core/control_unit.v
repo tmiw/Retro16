@@ -6,7 +6,10 @@ module control_unit(
 	ram_data_in,
 	ram_data_out,
 	ram_read_en,
-	ram_write_en
+	ram_write_en,
+	interrupt_en,
+	interrupt_num,
+	interrupt_ack
 );
 
 input clk;
@@ -16,6 +19,9 @@ input [15:0] ram_data_in;
 output reg [15:0] ram_data_out;
 output reg ram_read_en;
 output reg ram_write_en;
+input interrupt_en;
+input [2:0] interrupt_num;
+output reg interrupt_ack;
 
 wire [2:0] left_register_num;
 wire [2:0] right_register_num;
@@ -26,6 +32,7 @@ wire [15:0] pc_register_out;
 reg [15:0] write_register_in;
 wire [2:0] cond_bit_out;
 reg reg_write_en;
+reg active_bank;
 
 register_file regs(
 	clk,
@@ -37,7 +44,8 @@ register_file regs(
 	cond_bit_out,
 	write_register_num,
 	write_register_in,
-	reg_write_en
+	reg_write_en,
+	active_bank
 );
 
 reg [15:0] alu_operand1;
@@ -51,6 +59,7 @@ wire ram_should_read;
 wire [2:0] dest_reg;
 reg [15:0] instruction_reg = 0;
 reg [2:0] current_state = 0;
+wire should_interrupt_ack;
 
 decoder instruction_decoder(
 	clk,
@@ -62,7 +71,8 @@ decoder instruction_decoder(
 	alu_offset,
 	alu_operation,
 	ram_should_read,
-	ram_should_write
+	ram_should_write,
+	should_interrupt_ack
 );
 
 alu processor_alu(
@@ -80,7 +90,9 @@ begin
 		write_register_num <= 6;
 		write_register_in <= 16'h0100; // PC on boot = 256
 		reg_write_en <= 1;
+		active_bank <= 0; // TODO: link to interrupt controller
 		current_state <= 0;
+		interrupt_ack <= 0;
 	end
 	else
 	begin
@@ -91,6 +103,7 @@ begin
 			ram_address_in <= pc_register_out;
 			ram_read_en <= 1;
 			ram_write_en <= 0;
+			interrupt_ack <= 0;
 			current_state <= current_state + 3'b1;
 		end
 		1: begin
@@ -141,6 +154,7 @@ begin
 			ram_read_en <= 0;
 			ram_write_en <= 0;
 			current_state <= current_state + 3'b1;
+			interrupt_ack <= should_interrupt_ack;
 		end
 		5: begin
 			// PC increment (if necessary)
@@ -149,6 +163,25 @@ begin
 				write_register_num <= 6;
 				write_register_in <= pc_register_out + 1;
 				reg_write_en <= 1;
+			end
+			current_state <= current_state + 3'b1;
+		end
+		6: begin
+			// Interrupt handling, if needed
+			if (!active_bank && interrupt_en)
+			begin
+				// PC = 0x100 - interrupt number.
+				// Expected to be unconditional jump to actual handler at address.
+				active_bank <= 1;
+				reg_write_en <= 1;
+				write_register_num <= 6;
+				write_register_in <= 16'h0100 - interrupt_num;
+			end
+			else if (active_bank && interrupt_ack)
+			begin
+				// Switch back to bank 0, e.g. normal mode.
+				active_bank <= 0;
+				reg_write_en <= 0;
 			end
 			current_state <= current_state + 3'b1;
 		end
