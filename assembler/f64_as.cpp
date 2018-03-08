@@ -6,8 +6,9 @@ int main(int argc, char **argv)
 {
 	// TBD
 	std::fstream input(argv[0], std::ios_base::in);
+	std::vector<std::unique_ptr<f64_assembler::ParsedInstruction> > instructionList;
 	yy::f64_scanner scanner(&input);
-	yy::f64_parser parser(&scanner);
+	yy::f64_parser parser(&scanner, &instructionList);
 	parser.parse();
 	
 	return 0;

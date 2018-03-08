@@ -4,17 +4,22 @@
 %skeleton "lalr1.cc" /* -*- C++ -*- */
 %require "3.0.4"
 
-%parse-param  {yy::f64_scanner* scanner}
+%parse-param  {yy::f64_scanner* scanner} {std::vector<std::unique_ptr<f64_assembler::ParsedInstruction> >* output}
 
 %code requires {
     #include <stdexcept>
     #include <string>
 
     #include "location.hh"
-
+	#include "instruction.hpp"
+	
     namespace yy {
         class f64_scanner;
     };
+	
+	namespace f64_assembler {
+		class ParsedOutput;
+	};
 }
 
 %code {
@@ -24,7 +29,7 @@
     #include <sstream>
 
     #include "f64_scanner.hpp"
-
+	
     using std::move;
 
     #undef yylex
@@ -61,68 +66,105 @@
 %token SHIFT_RIGHT
 %token <unsigned int> POS_NUM
 
+%type <f64_assembler::ParsedInstruction*> jump_label
+%type <f64_assembler::ParsedInstruction*> branch_inst
+%type <f64_assembler::ParsedInstruction*> ld_st_inst
+%type <f64_assembler::ParsedInstruction*> math_reg_const_inst
+%type <f64_assembler::ParsedInstruction*> math_reg_reg_inst
+%type <f64_assembler::ParsedInstruction*> math_shift_inst
+%type <f64_assembler::ParsedInstruction*> statement
+%type <f64_assembler::ParsedInstruction*> stmt_line
+%type <f64_assembler::InstructionFactory::AluInstruction> alu_inst
+%type <f64_assembler::InstructionFactory::ShiftInstruction> shift_direction
+%type <f64_assembler::InstructionFactory::BranchType> branch_type
+%type <f64_assembler::InstructionFactory::LoadStoreType> mem_direction
+
 %%
 
 program				:	
 					| line program
 					;
 		
-line				: jump_label
-					| statement
+line				: jump_label				{ output->emplace_back($1); }
+					| statement					{ output->emplace_back($1); }
 					;
 		
-jump_label			: IDENTIFIER SEP_COLON
+jump_label			: IDENTIFIER SEP_COLON		{ $$ = f64_assembler::InstructionFactory::MakeJumpDestination($1); }
 					;
 			
-statement			: stmt_line line_ending
+statement			: stmt_line line_ending		{ $$ = $1; }
 					;
 			
 line_ending			: SEP_SEMICOLON
 					| SEP_NEWLINE
 					;
 			
-stmt_line			: branch_inst
-					| ld_st_inst
-					| math_reg_const_inst
-					| math_shift_inst
-					| math_reg_reg_inst
+stmt_line			: branch_inst				{ $$ = $1; }
+					| ld_st_inst				{ $$ = $1; }
+					| math_reg_const_inst		{ $$ = $1; }
+					| math_shift_inst			{ $$ = $1; }
+					| math_reg_reg_inst			{ $$ = $1; }
 					;
 			
-branch_inst			: branch_type IDENTIFIER
+branch_inst			: branch_type IDENTIFIER	{ $$ = f64_assembler::InstructionFactory::MakeBranchInstruction($1, $2); }
 					;
 
-branch_type			: BR_UNCOND
-					| BR_GT
-					| BR_LT
-					| BR_Z
-					| BR_LE
-					| BR_GE
+branch_type			: BR_UNCOND					{ $$ = f64_assembler::InstructionFactory::BranchType::UNCONDITIONAL; }
+					| BR_GT						{ $$ = f64_assembler::InstructionFactory::BranchType::GREATER_THAN; }
+					| BR_LT						{ $$ = f64_assembler::InstructionFactory::BranchType::LESS_THAN; }
+					| BR_Z						{ $$ = f64_assembler::InstructionFactory::BranchType::ZERO; }
+					| BR_LE						{ $$ = f64_assembler::InstructionFactory::BranchType::LESS_EQUAL; }
+					| BR_GE						{ $$ = f64_assembler::InstructionFactory::BranchType::GREATER_EQUAL; }
 					;
 
 ld_st_inst			: mem_direction REGISTER REGISTER NUM_VAL
+												{ $$ = f64_assembler::InstructionFactory::MakeLoadStoreInstruction(
+												    $1,
+													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
+													f64_assembler::InstructionFactory::RegisterNumberFromName($3),
+													$4); 
+												}
 					;
 
-mem_direction		: LD
-					| ST
+mem_direction		: LD						{ $$ = f64_assembler::InstructionFactory::LoadStoreType::LOAD; }
+					| ST						{ $$ = f64_assembler::InstructionFactory::LoadStoreType::STORE; }
 					;
 				
 math_reg_const_inst	: alu_inst REGISTER REGISTER NUM_VAL
+												{ $$ = f64_assembler::InstructionFactory::MakeAluInstructionWithConstOperand(
+													$1,
+													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
+													f64_assembler::InstructionFactory::RegisterNumberFromName($3),
+													$4);
+												}
 					;
 
-alu_inst			: ADD
-					| AND
-					| OR
-					| NOT
+alu_inst			: ADD						{ $$ = f64_assembler::InstructionFactory::AluInstruction::ADD; }
+					| AND						{ $$ = f64_assembler::InstructionFactory::AluInstruction::AND; }
+					| OR						{ $$ = f64_assembler::InstructionFactory::AluInstruction::OR; }
+					| NOT						{ $$ = f64_assembler::InstructionFactory::AluInstruction::NOT; }
 					;
 
 math_shift_inst		: shift_direction REGISTER REGISTER POS_NUM
+												{ $$ = f64_assembler::InstructionFactory::MakeShiftInstruction(
+													$1,
+													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
+													f64_assembler::InstructionFactory::RegisterNumberFromName($3),
+													$4);
+												}
 					;
 
-shift_direction		: SHIFT_LEFT
-					| SHIFT_RIGHT
+shift_direction		: SHIFT_LEFT				{ $$ = f64_assembler::InstructionFactory::ShiftInstruction::SHIFT_LEFT; }
+					| SHIFT_RIGHT				{ $$ = f64_assembler::InstructionFactory::ShiftInstruction::SHIFT_RIGHT; }
 					;
 					
 math_reg_reg_inst	: alu_inst REGISTER REGISTER REGISTER
+												{ $$ = f64_assembler::InstructionFactory::MakeAluInstructionWithConstOperand(
+													$1,
+													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
+													f64_assembler::InstructionFactory::RegisterNumberFromName($3),
+													f64_assembler::InstructionFactory::RegisterNumberFromName($4));
+												}
 					;
 					
 %%

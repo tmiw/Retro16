@@ -21,6 +21,7 @@ identifier	[A-Za-z][A-Za-z0-9_]*
 pos_number	[0-9]+
 number		-?[0-9]+
 newline		\r?\n
+comment		#.*
 
 %% 
 
@@ -28,6 +29,8 @@ newline		\r?\n
     // before matching any pattern, update the the current location
     yylloc->step();
 %}
+
+{comment}		{ /* ignore comments */ }
 
 "bgt"			{ return token::BR_GT; }
 "blt"			{ return token::BR_LT; }
