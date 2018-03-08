@@ -3,3 +3,9 @@ output_files/
 db/
 incremental_db/
 simulation/
+
+assembler/*.cxx
+assembler/*.hxx
+assembler/*.hh
+assembler/*.dSYM
+assembler/f64_as
