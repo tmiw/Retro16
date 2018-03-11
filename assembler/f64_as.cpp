@@ -32,8 +32,10 @@ int main(int argc, char **argv)
 			currentOffset = i->offset() + (i->instructionLength() / f64_assembler::ParsedInstruction::INSTRUCTION_BITS);
 		}
 		
-		// In the current implementation of the loader, every file should be 96K in length.
-		unsigned char* output = new unsigned char[96*1024];
+		// In the current implementation of the loader, every file should be 96K in length + 
+		// a few extra bytes to ensure that the FPGA recognizes the end of the file.
+		// TODO: figure out why the FPGA needs more than 96K of data to exit out of the loader.
+		unsigned char* output = new unsigned char[96*1024 + 16];
 		
 		for (auto&& i : instructionList)
 		{
@@ -55,7 +57,7 @@ int main(int argc, char **argv)
 		std::string inFileName(argv[1]);
 		std::string outFileName(inFileName.substr(0, inFileName.find_last_of(".")) + ".bin");
 		outFile.open(outFileName.c_str(), std::ios_base::out);
-		outFile.write((char*)output, 96*1024);
+		outFile.write((char*)output, 96*1024 + 16);
 		outFile.close();
 		
 		delete[] output;
