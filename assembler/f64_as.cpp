@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <arpa/inet.h>
 #include "f64_scanner.hpp"
 #include "f64_parser.hxx"
 

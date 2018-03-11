@@ -9,6 +9,7 @@
 %code requires {
     #include <stdexcept>
     #include <string>
+    #include <memory>
 
     #include "location.hh"
 	#include "instruction.hpp"
