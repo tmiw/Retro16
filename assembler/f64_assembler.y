@@ -19,6 +19,14 @@
 	
 	namespace f64_assembler {
 		class ParsedOutput;
+		
+		struct SemanticException : public std::exception
+		{
+			const char * what () const throw ()
+		    {
+		    	return "SemanticException";
+		    }
+		};
 	};
 }
 

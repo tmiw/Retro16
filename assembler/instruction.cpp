@@ -20,6 +20,46 @@ JumpDestination::JumpDestination(std::string& label)
 	// This is a placeholder so the address pass can determine where jump labels are located in RAM.
 }
 
+void JumpDestination::pushOffset(OffsetTable& offsetTable)
+{
+	// This version of pushOffset saves the current offset to the table for our jump label.
+	// The BranchInstruction's version of resolve will later grab this value for output of the generated
+	// code. If there's already a jump label defined, return an error to the user.
+	if (offsetTable.find(destLabel) != offsetTable.end())
+	{
+		// TBD
+		assert(0);
+	}
+	else
+	{
+		if (destLabel == "start")
+		{
+			// start is special. In the current implementation of the CPU, we begin execution
+			// at address 0x0100. To ensure that our generated code is positioned correctly,
+			// we change our own offset to that value.
+			setOffset(0x0100);
+		}
+		
+		offsetTable[destLabel] = offset();
+	}
+}
+
+void BranchInstruction::resolve(OffsetTable& offsetTable)
+{
+	// Retrieve known address of jump destination. If it doesn't exist, we should return some 
+	// sort of error to the user.
+	if (offsetTable.find(branchName) != offsetTable.end())
+	{
+		short instructionOffset = offsetTable[branchName] - offset() + 1;
+		instructionBytes |= (unsigned short)instructionOffset & 0x0FFF;
+	}
+	else
+	{
+		// TBD
+		assert(0);
+	}
+}
+
 ParsedInstruction* InstructionFactory::MakeJumpDestination(std::string label)
 {
 	return new JumpDestination(label);

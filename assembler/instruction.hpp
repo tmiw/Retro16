@@ -2,6 +2,7 @@
 #define PARSED_OUTPUT_HPP
 
 #include <vector>
+#include <map>
 
 namespace f64_assembler
 {
@@ -9,15 +10,28 @@ namespace f64_assembler
 	{
 	public:
 		enum { INSTRUCTION_BITS = 16 };
+		typedef std::map<std::string, unsigned short> OffsetTable;
+		
+		virtual int instructionLength() const { return INSTRUCTION_BITS; }
+		void setOffset(unsigned short newOffset) { byteOffset = newOffset; }
+		unsigned short offset() const { return byteOffset; }
+		
+		virtual void resolve(OffsetTable& offsetTable) { /* defaults to no-op */ }
+		virtual void pushOffset(OffsetTable& offsetTable) { /* defaults to no-op */ }
+		
+		unsigned short instruction() const { return instructionBytes; }
 		
 	protected:
 		ParsedInstruction(unsigned short data)
-			: instruction_bytes(data)
+			: instructionBytes(data)
 		{
 			// empty
 		}
 		
-		unsigned short instruction_bytes;
+		unsigned short instructionBytes;
+	
+	private:
+		unsigned short byteOffset;
 	};
 	
 	class JumpDestination : public ParsedInstruction
@@ -25,8 +39,11 @@ namespace f64_assembler
 	public:
 		JumpDestination(std::string &label);
 		
+		virtual int instructionLength() const { return 0; /* psuedo instruction */ }
+		virtual void pushOffset(OffsetTable& offsetTable);
+		
 	private:
-		std::string &destLabel;
+		std::string destLabel;
 	};
 	
 	// One argument instruction
@@ -56,8 +73,10 @@ namespace f64_assembler
 	public:
 		BranchInstruction(unsigned short prefix, std::string& branchDestination);
 		
+		virtual void resolve(OffsetTable& offsetTable);
+		
 	private:
-		std::string &branchName;
+		std::string branchName;
 	};
 	
 	// Three argument instruction
