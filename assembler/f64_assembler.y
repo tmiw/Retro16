@@ -58,6 +58,7 @@
 %token SEP_NEWLINE
 %token SEP_COMMA
 %token <int> NUM_VAL
+%token <int> HEX_VAL
 %token BR_GT		
 %token BR_LT
 %token BR_Z
@@ -73,6 +74,7 @@
 %token NOT
 %token SHIFT_LEFT
 %token SHIFT_RIGHT
+%token PSUEDO_RAW
 
 %type <f64_assembler::ParsedInstruction*> jump_label
 %type <f64_assembler::ParsedInstruction*> branch_inst
@@ -80,6 +82,7 @@
 %type <f64_assembler::ParsedInstruction*> math_reg_const_inst
 %type <f64_assembler::ParsedInstruction*> math_reg_reg_inst
 %type <f64_assembler::ParsedInstruction*> math_shift_inst
+%type <f64_assembler::ParsedInstruction*> psuedo_inst
 %type <f64_assembler::ParsedInstruction*> statement
 %type <f64_assembler::ParsedInstruction*> stmt_line
 %type <f64_assembler::InstructionFactory::AluInstruction> alu_inst
@@ -113,8 +116,12 @@ stmt_line			: branch_inst				{ $$ = $1; }
 					| math_reg_const_inst		{ $$ = $1; }
 					| math_shift_inst			{ $$ = $1; }
 					| math_reg_reg_inst			{ $$ = $1; }
+					| psuedo_inst				{ $$ = $1; }
 					;
-			
+
+psuedo_inst			: PSUEDO_RAW HEX_VAL		{ $$ = f64_assembler::InstructionFactory::MakeRawInstruction($2); }
+					;
+					
 branch_inst			: branch_type IDENTIFIER	{ $$ = f64_assembler::InstructionFactory::MakeBranchInstruction($1, $2); }
 					;
 

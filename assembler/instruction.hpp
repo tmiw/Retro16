@@ -34,6 +34,14 @@ namespace f64_assembler
 		unsigned short byteOffset;
 	};
 	
+	// Simple wrapper to support the .raw psuedo-op.
+	class RawInstruction : public ParsedInstruction
+	{
+	public:
+		RawInstruction(unsigned short instruction)
+			: ParsedInstruction(instruction) { }
+	};
+	
 	class JumpDestination : public ParsedInstruction
 	{
 	public:
@@ -146,6 +154,7 @@ namespace f64_assembler
 		static ParsedInstruction* MakeAluInstructionWithConstOperand(AluInstruction type, short register1, short register2, short offset);
 		static ParsedInstruction* MakeAluInstructionWithRegOperand(AluInstruction type, short register1, short register2, short register3);
 		static ParsedInstruction* MakeShiftInstruction(ShiftInstruction type, short register1, short register2, short offset);
+		static ParsedInstruction* MakeRawInstruction(unsigned short instruction);
 		
 		static short RegisterNumberFromName(std::string& register_name);
 	};

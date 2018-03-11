@@ -1,9 +1,9 @@
-# const: 0xf82f
-# const: 0x0748 (H)
-# const: 0x0765 (e)
-# const: 0x076c (l)
-# const: 0x076c (l)
-# const: 0x076f (o)
+.raw 0xf82f # Address of display buffer
+.raw 0x0748 # ASCII H, black on white
+.raw 0x0765 # ASCII e
+.raw 0x076c # ASCII l
+.raw 0x076c # ASCII l
+.raw 0x076f # ASCII o
 
 start:
 	ld r1, r0, 0

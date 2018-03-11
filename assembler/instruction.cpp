@@ -186,6 +186,11 @@ ParsedInstruction* InstructionFactory::MakeShiftInstruction(ShiftInstruction typ
 	);
 }
 
+ParsedInstruction* InstructionFactory::MakeRawInstruction(unsigned short instruction)
+{
+	return new RawInstruction(instruction);
+}
+
 short InstructionFactory::RegisterNumberFromName(std::string& register_name)
 {
 	if (register_name[0] == 'r')

@@ -21,7 +21,8 @@ identifier	[A-Za-z][A-Za-z0-9_]*
 number		-?[0-9]+
 newline		\r?\n
 comment		#.*
-whitespace [\t ]+
+whitespace	[\t ]+
+hex_number	0x[0-9A-Fa-f]+
 
 %% 
 
@@ -32,6 +33,8 @@ whitespace [\t ]+
 
 {comment}		{ /* ignore comments */ }
 {whitespace}	{ /* ignore whitespace */ }
+
+".raw"			{ return token::PSUEDO_RAW; }
 
 "bgt"			{ return token::BR_GT; }
 "blt"			{ return token::BR_LT; }
@@ -70,6 +73,11 @@ r[0-5]|pc|sp	{
 {number}		{ 
 					yylval->build<int>() = atoi(yytext);
 					return token::NUM_VAL; 
+				}
+				
+{hex_number}	{
+					yylval->build<int>() = std::stoul(yytext, 0, 16);
+					return token::HEX_VAL;
 				}
 
 .               {
