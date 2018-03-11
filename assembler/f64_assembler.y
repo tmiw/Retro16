@@ -48,6 +48,7 @@
 %token SEP_COLON
 %token SEP_SEMICOLON
 %token SEP_NEWLINE
+%token SEP_COMMA
 %token <int> NUM_VAL
 %token BR_GT		
 %token BR_LT
@@ -64,7 +65,6 @@
 %token NOT
 %token SHIFT_LEFT
 %token SHIFT_RIGHT
-%token <unsigned int> POS_NUM
 
 %type <f64_assembler::ParsedInstruction*> jump_label
 %type <f64_assembler::ParsedInstruction*> branch_inst
@@ -87,6 +87,7 @@ program				:
 		
 line				: jump_label				{ output->emplace_back($1); }
 					| statement					{ output->emplace_back($1); }
+					| line_ending
 					;
 		
 jump_label			: IDENTIFIER SEP_COLON		{ $$ = f64_assembler::InstructionFactory::MakeJumpDestination($1); }
@@ -117,12 +118,12 @@ branch_type			: BR_UNCOND					{ $$ = f64_assembler::InstructionFactory::BranchTy
 					| BR_GE						{ $$ = f64_assembler::InstructionFactory::BranchType::GREATER_EQUAL; }
 					;
 
-ld_st_inst			: mem_direction REGISTER REGISTER NUM_VAL
+ld_st_inst			: mem_direction REGISTER SEP_COMMA REGISTER SEP_COMMA NUM_VAL
 												{ $$ = f64_assembler::InstructionFactory::MakeLoadStoreInstruction(
 												    $1,
 													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
-													f64_assembler::InstructionFactory::RegisterNumberFromName($3),
-													$4); 
+													f64_assembler::InstructionFactory::RegisterNumberFromName($4),
+													$6); 
 												}
 					;
 
@@ -130,12 +131,12 @@ mem_direction		: LD						{ $$ = f64_assembler::InstructionFactory::LoadStoreType
 					| ST						{ $$ = f64_assembler::InstructionFactory::LoadStoreType::STORE; }
 					;
 				
-math_reg_const_inst	: alu_inst REGISTER REGISTER NUM_VAL
+math_reg_const_inst	: alu_inst REGISTER SEP_COMMA REGISTER SEP_COMMA NUM_VAL
 												{ $$ = f64_assembler::InstructionFactory::MakeAluInstructionWithConstOperand(
 													$1,
 													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
-													f64_assembler::InstructionFactory::RegisterNumberFromName($3),
-													$4);
+													f64_assembler::InstructionFactory::RegisterNumberFromName($4),
+													$6);
 												}
 					;
 
@@ -145,12 +146,12 @@ alu_inst			: ADD						{ $$ = f64_assembler::InstructionFactory::AluInstruction::
 					| NOT						{ $$ = f64_assembler::InstructionFactory::AluInstruction::NOT; }
 					;
 
-math_shift_inst		: shift_direction REGISTER REGISTER POS_NUM
+math_shift_inst		: shift_direction REGISTER SEP_COMMA REGISTER SEP_COMMA NUM_VAL
 												{ $$ = f64_assembler::InstructionFactory::MakeShiftInstruction(
 													$1,
 													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
-													f64_assembler::InstructionFactory::RegisterNumberFromName($3),
-													$4);
+													f64_assembler::InstructionFactory::RegisterNumberFromName($4),
+													$6);
 												}
 					;
 
@@ -158,12 +159,12 @@ shift_direction		: SHIFT_LEFT				{ $$ = f64_assembler::InstructionFactory::Shift
 					| SHIFT_RIGHT				{ $$ = f64_assembler::InstructionFactory::ShiftInstruction::SHIFT_RIGHT; }
 					;
 					
-math_reg_reg_inst	: alu_inst REGISTER REGISTER REGISTER
+math_reg_reg_inst	: alu_inst REGISTER SEP_COMMA REGISTER SEP_COMMA REGISTER
 												{ $$ = f64_assembler::InstructionFactory::MakeAluInstructionWithConstOperand(
 													$1,
 													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
-													f64_assembler::InstructionFactory::RegisterNumberFromName($3),
-													f64_assembler::InstructionFactory::RegisterNumberFromName($4));
+													f64_assembler::InstructionFactory::RegisterNumberFromName($4),
+													f64_assembler::InstructionFactory::RegisterNumberFromName($6));
 												}
 					;
 					

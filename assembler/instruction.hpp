@@ -20,6 +20,15 @@ namespace f64_assembler
 		unsigned short instruction_bytes;
 	};
 	
+	class JumpDestination : public ParsedInstruction
+	{
+	public:
+		JumpDestination(std::string &label);
+		
+	private:
+		std::string &destLabel;
+	};
+	
 	// One argument instruction
 	template<int prefix_len>
 	class OneArgInstruction : public ParsedInstruction
@@ -40,6 +49,15 @@ namespace f64_assembler
 			PREFIX_SHIFT = INSTRUCTION_BITS - prefix_len,
 			PARAM1_MASK = ~(0xFFFF << PREFIX_SHIFT)
 		};
+	};
+	
+	class BranchInstruction : public OneArgInstruction<4>
+	{
+	public:
+		BranchInstruction(unsigned short prefix, std::string& branchDestination);
+		
+	private:
+		std::string &branchName;
 	};
 	
 	// Three argument instruction

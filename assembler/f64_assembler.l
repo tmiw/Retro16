@@ -18,10 +18,10 @@
 %}
 
 identifier	[A-Za-z][A-Za-z0-9_]*
-pos_number	[0-9]+
 number		-?[0-9]+
 newline		\r?\n
 comment		#.*
+whitespace [\t ]+
 
 %% 
 
@@ -31,6 +31,7 @@ comment		#.*
 %}
 
 {comment}		{ /* ignore comments */ }
+{whitespace}	{ /* ignore whitespace */ }
 
 "bgt"			{ return token::BR_GT; }
 "blt"			{ return token::BR_LT; }
@@ -59,15 +60,11 @@ r[0-5]|pc|sp	{
 				}
 				
 ":"				{ return token::SEP_COLON; }
+","				{ return token::SEP_COMMA; }
 ";"				{ return token::SEP_SEMICOLON; }
 {newline}		{ 
 					yylloc->lines(1);
 					return token::SEP_NEWLINE; 
-				}
-
-{pos_number}	{
-					yylval->build<unsigned int>() = atoi(yytext);
-					return token::POS_NUM;
 				}
 				
 {number}		{ 
