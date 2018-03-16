@@ -20,14 +20,6 @@
 	
 	namespace f64_assembler {
 		class ParsedOutput;
-		
-		struct SemanticException : public std::exception
-		{
-			const char * what () const throw ()
-		    {
-		    	return "SemanticException";
-		    }
-		};
 	};
 }
 
@@ -102,7 +94,7 @@ line				: jump_label				{ output->emplace_back($1); }
 					| line_ending
 					;
 		
-jump_label			: IDENTIFIER SEP_COLON		{ $$ = f64_assembler::InstructionFactory::MakeJumpDestination($1); }
+jump_label			: IDENTIFIER SEP_COLON		{ $$ = f64_assembler::InstructionFactory::MakeJumpDestination($1, @$); }
 					;
 			
 statement			: stmt_line line_ending		{ $$ = $1; }
@@ -120,10 +112,10 @@ stmt_line			: branch_inst				{ $$ = $1; }
 					| psuedo_inst				{ $$ = $1; }
 					;
 
-psuedo_inst			: PSUEDO_RAW HEX_VAL		{ $$ = f64_assembler::InstructionFactory::MakeRawInstruction($2); }
+psuedo_inst			: PSUEDO_RAW HEX_VAL		{ $$ = f64_assembler::InstructionFactory::MakeRawInstruction($2, @$); }
 					;
 					
-branch_inst			: branch_type IDENTIFIER	{ $$ = f64_assembler::InstructionFactory::MakeBranchInstruction($1, $2); }
+branch_inst			: branch_type IDENTIFIER	{ $$ = f64_assembler::InstructionFactory::MakeBranchInstruction($1, $2, @$); }
 					;
 
 branch_type			: BR_UNCOND					{ $$ = f64_assembler::InstructionFactory::BranchType::UNCONDITIONAL; }
@@ -139,7 +131,8 @@ ld_st_inst			: mem_direction REGISTER SEP_COMMA REGISTER SEP_COMMA NUM_VAL
 												    $1,
 													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
 													f64_assembler::InstructionFactory::RegisterNumberFromName($4),
-													$6); 
+													$6,
+													@$); 
 												}
 					;
 
@@ -152,7 +145,8 @@ math_reg_const_inst	: alu_inst REGISTER SEP_COMMA REGISTER SEP_COMMA NUM_VAL
 													$1,
 													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
 													f64_assembler::InstructionFactory::RegisterNumberFromName($4),
-													$6);
+													$6,
+													@$);
 												}
 					;
 
@@ -167,7 +161,8 @@ math_shift_inst		: shift_direction REGISTER SEP_COMMA REGISTER SEP_COMMA NUM_VAL
 													$1,
 													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
 													f64_assembler::InstructionFactory::RegisterNumberFromName($4),
-													$6);
+													$6,
+													@$);
 												}
 					;
 
@@ -180,7 +175,8 @@ math_reg_reg_inst	: alu_inst REGISTER SEP_COMMA REGISTER SEP_COMMA REGISTER
 													$1,
 													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
 													f64_assembler::InstructionFactory::RegisterNumberFromName($4),
-													f64_assembler::InstructionFactory::RegisterNumberFromName($6));
+													f64_assembler::InstructionFactory::RegisterNumberFromName($6),
+													@$);
 												}
 					;
 					

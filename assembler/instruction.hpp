@@ -3,9 +3,19 @@
 
 #include <vector>
 #include <map>
+#include "location.hh"
 
 namespace f64_assembler
 {
+    struct SemanticException : std::runtime_error
+    {
+      SemanticException (const yy::location& l, const std::string& m)
+		  : std::runtime_error(m),
+	  	    location(l) { }
+			
+      yy::location location;
+    };
+	
 	class ParsedInstruction
 	{
 	public:
@@ -22,14 +32,16 @@ namespace f64_assembler
 		unsigned short instruction() const { return instructionBytes; }
 		
 	protected:
-		ParsedInstruction(unsigned short data)
-			: instructionBytes(data)
+		ParsedInstruction(unsigned short data, yy::location& loc)
+			: instructionBytes(data),
+			  fileLocation(loc)
 		{
 			// empty
 		}
 		
 		unsigned short instructionBytes;
-	
+		yy::location fileLocation;
+		
 	private:
 		unsigned short byteOffset;
 	};
@@ -38,14 +50,14 @@ namespace f64_assembler
 	class RawInstruction : public ParsedInstruction
 	{
 	public:
-		RawInstruction(unsigned short instruction)
-			: ParsedInstruction(instruction) { }
+		RawInstruction(unsigned short instruction, yy::location& loc)
+			: ParsedInstruction(instruction, loc) { }
 	};
 	
 	class JumpDestination : public ParsedInstruction
 	{
 	public:
-		JumpDestination(std::string &label);
+		JumpDestination(std::string &label, yy::location& loc);
 		
 		virtual int instructionLength() const { return 0; /* psuedo instruction */ }
 		virtual void pushOffset(OffsetTable& offsetTable);
@@ -59,10 +71,11 @@ namespace f64_assembler
 	class OneArgInstruction : public ParsedInstruction
 	{
 	public:
-		OneArgInstruction(unsigned short prefix, unsigned short param1)
+		OneArgInstruction(unsigned short prefix, unsigned short param1, yy::location& loc)
 			: ParsedInstruction(
 				(prefix << PREFIX_SHIFT) | 
-				(param1 & PARAM1_MASK)
+				(param1 & PARAM1_MASK),
+				loc
 			  )
 		{
 			// empty
@@ -79,7 +92,7 @@ namespace f64_assembler
 	class BranchInstruction : public OneArgInstruction<4>
 	{
 	public:
-		BranchInstruction(unsigned short prefix, std::string& branchDestination);
+		BranchInstruction(unsigned short prefix, std::string& branchDestination, yy::location& loc);
 		
 		virtual void resolve(OffsetTable& offsetTable);
 		
@@ -92,12 +105,13 @@ namespace f64_assembler
 	class ThreeArgInstruction : public ParsedInstruction
 	{
 	public:
-		ThreeArgInstruction(unsigned short prefix, unsigned short param1, unsigned short param2, unsigned short param3)
+		ThreeArgInstruction(unsigned short prefix, unsigned short param1, unsigned short param2, unsigned short param3, yy::location& loc)
 			: ParsedInstruction(
 				(prefix << PREFIX_SHIFT) | 
 				((param1 << PARAM1_SHIFT) & PARAM1_MASK) | 
 				((param2 << PARAM2_SHIFT) & PARAM2_MASK) |
-				(param3 & PARAM3_MASK)
+				(param3 & PARAM3_MASK),
+				loc
 			  )
 		{
 			// empty
@@ -148,13 +162,13 @@ namespace f64_assembler
 			SHIFT_RIGHT
 		};
 		
-		static ParsedInstruction* MakeJumpDestination(std::string label);
-		static ParsedInstruction* MakeBranchInstruction(BranchType type, std::string label);
-		static ParsedInstruction* MakeLoadStoreInstruction(LoadStoreType type, short register1, short register2, short offset);
-		static ParsedInstruction* MakeAluInstructionWithConstOperand(AluInstruction type, short register1, short register2, short offset);
-		static ParsedInstruction* MakeAluInstructionWithRegOperand(AluInstruction type, short register1, short register2, short register3);
-		static ParsedInstruction* MakeShiftInstruction(ShiftInstruction type, short register1, short register2, short offset);
-		static ParsedInstruction* MakeRawInstruction(unsigned short instruction);
+		static ParsedInstruction* MakeJumpDestination(std::string label, yy::location& loc);
+		static ParsedInstruction* MakeBranchInstruction(BranchType type, std::string label, yy::location& loc);
+		static ParsedInstruction* MakeLoadStoreInstruction(LoadStoreType type, short register1, short register2, short offset, yy::location& loc);
+		static ParsedInstruction* MakeAluInstructionWithConstOperand(AluInstruction type, short register1, short register2, short offset, yy::location& loc);
+		static ParsedInstruction* MakeAluInstructionWithRegOperand(AluInstruction type, short register1, short register2, short register3, yy::location& loc);
+		static ParsedInstruction* MakeShiftInstruction(ShiftInstruction type, short register1, short register2, short offset, yy::location& loc);
+		static ParsedInstruction* MakeRawInstruction(unsigned short instruction, yy::location& loc);
 		
 		static short RegisterNumberFromName(std::string& register_name);
 	};

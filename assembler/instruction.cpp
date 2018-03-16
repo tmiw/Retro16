@@ -1,20 +1,21 @@
 #include <cassert>
 #include <string>
+#include <sstream>
 #include "instruction.hpp"
 
 namespace f64_assembler
 {
 
-BranchInstruction::BranchInstruction(unsigned short prefix, std::string& branchDestination)
-	: OneArgInstruction(prefix, 0),
+BranchInstruction::BranchInstruction(unsigned short prefix, std::string& branchDestination, yy::location& loc)
+	: OneArgInstruction(prefix, 0, loc),
 	  branchName(branchDestination)
 {
 	// We don't do anything here for the time being. The resolution of the branch
 	// occurs during the second pass.
 }
 
-JumpDestination::JumpDestination(std::string& label)
-	: ParsedInstruction(0),
+JumpDestination::JumpDestination(std::string& label, yy::location& loc)
+	: ParsedInstruction(0, loc),
 	  destLabel(label)
 {
 	// This is a placeholder so the address pass can determine where jump labels are located in RAM.
@@ -27,8 +28,9 @@ void JumpDestination::pushOffset(OffsetTable& offsetTable)
 	// code. If there's already a jump label defined, return an error to the user.
 	if (offsetTable.find(destLabel) != offsetTable.end())
 	{
-		// TBD
-		assert(0);
+		std::ostringstream ss;
+		ss << "Label " << destLabel << " has already been defined.";
+		throw SemanticException(fileLocation, ss.str());
 	}
 	else
 	{
@@ -36,7 +38,14 @@ void JumpDestination::pushOffset(OffsetTable& offsetTable)
 		{
 			// start is special. In the current implementation of the CPU, we begin execution
 			// at address 0x0100. To ensure that our generated code is positioned correctly,
-			// we change our own offset to that value.
+			// we change our own offset to that value. If the current offset is greater than
+			// 0x0100, error out as it'll be impossible to avoid overwriting previous code.
+			if (offset() > 0x0100)
+			{
+				std::ostringstream ss;
+				ss << "Some of the code at the start label will overwrite previous code. Please relocate previous code as needed to make room.";
+				throw SemanticException(fileLocation, ss.str());
+			}
 			setOffset(0x0100);
 		}
 		
@@ -55,17 +64,18 @@ void BranchInstruction::resolve(OffsetTable& offsetTable)
 	}
 	else
 	{
-		// TBD
-		assert(0);
+		std::ostringstream ss;
+		ss << "Could not find jump destination " << branchName;
+		throw SemanticException(fileLocation, ss.str());
 	}
 }
 
-ParsedInstruction* InstructionFactory::MakeJumpDestination(std::string label)
+ParsedInstruction* InstructionFactory::MakeJumpDestination(std::string label, yy::location& loc)
 {
-	return new JumpDestination(label);
+	return new JumpDestination(label, loc);
 }
 
-ParsedInstruction* InstructionFactory::MakeBranchInstruction(BranchType type, std::string label)
+ParsedInstruction* InstructionFactory::MakeBranchInstruction(BranchType type, std::string label, yy::location& loc)
 {
 	unsigned short prefix = 0b1000;
 	switch(type)
@@ -93,21 +103,22 @@ ParsedInstruction* InstructionFactory::MakeBranchInstruction(BranchType type, st
 			assert(0);
 			break;
 	}
-	return new BranchInstruction(prefix, label);
+	return new BranchInstruction(prefix, label, loc);
 }
 
-ParsedInstruction* InstructionFactory::MakeLoadStoreInstruction(LoadStoreType type, short register1, short register2, short offset)
+ParsedInstruction* InstructionFactory::MakeLoadStoreInstruction(LoadStoreType type, short register1, short register2, short offset, yy::location& loc)
 {
 	unsigned short prefix = (type == LOAD) ? 0b010 : 0b011;
 	return new ThreeArgInstruction<3, 3, 3>(
 		prefix,
 		register1,
 		register2,
-		offset
+		offset,
+		loc
 	);
 }
 
-ParsedInstruction* InstructionFactory::MakeAluInstructionWithConstOperand(AluInstruction type, short register1, short register2, short offset)
+ParsedInstruction* InstructionFactory::MakeAluInstructionWithConstOperand(AluInstruction type, short register1, short register2, short offset, yy::location& loc)
 {
 	unsigned short prefix = 0b00100;
 	switch (type)
@@ -134,11 +145,12 @@ ParsedInstruction* InstructionFactory::MakeAluInstructionWithConstOperand(AluIns
 		prefix,
 		register1,
 		register2,
-		offset
+		offset,
+		loc
 	);
 }
 
-ParsedInstruction* InstructionFactory::MakeAluInstructionWithRegOperand(AluInstruction type, short register1, short register2, short register3)
+ParsedInstruction* InstructionFactory::MakeAluInstructionWithRegOperand(AluInstruction type, short register1, short register2, short register3, yy::location& loc)
 {
 	unsigned short prefix = 0b0000100;
 	switch (type)
@@ -165,11 +177,12 @@ ParsedInstruction* InstructionFactory::MakeAluInstructionWithRegOperand(AluInstr
 		prefix,
 		register1,
 		register2,
-		register3
+		register3,
+		loc
 	);
 }
 
-ParsedInstruction* InstructionFactory::MakeShiftInstruction(ShiftInstruction type, short register1, short register2, short offset)
+ParsedInstruction* InstructionFactory::MakeShiftInstruction(ShiftInstruction type, short register1, short register2, short offset, yy::location& loc)
 {
 	if (type == ShiftInstruction::SHIFT_RIGHT)
 	{
@@ -182,13 +195,14 @@ ParsedInstruction* InstructionFactory::MakeShiftInstruction(ShiftInstruction typ
 		prefix,
 		register1,
 		register2,
-		offset
+		offset,
+		loc
 	);
 }
 
-ParsedInstruction* InstructionFactory::MakeRawInstruction(unsigned short instruction)
+ParsedInstruction* InstructionFactory::MakeRawInstruction(unsigned short instruction, yy::location& loc)
 {
-	return new RawInstruction(instruction);
+	return new RawInstruction(instruction, loc);
 }
 
 short InstructionFactory::RegisterNumberFromName(std::string& register_name)

@@ -68,8 +68,16 @@ int main(int argc, char **argv)
 	{
 		// improve error messages by adding location information:
 		int row = e.location.begin.line;
-        int col = e.location.begin.column;
-        std::cerr << argv[1] << ":" << row << "." << col << ": " << e.what() << std::endl;
+		int col = e.location.begin.column;
+		std::cerr << argv[1] << ":" << row << "." << col << ": " << e.what() << std::endl;
+		return -1;
+	}
+	catch (f64_assembler::SemanticException& e)
+	{
+		// Same behavior as above but with a different type.
+		int row = e.location.begin.line;
+		int col = e.location.begin.column;
+		std::cerr << argv[1] << ":" << row << "." << col << ": " << e.what() << std::endl;
 		return -1;
 	}
 }
