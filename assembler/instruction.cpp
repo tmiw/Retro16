@@ -60,6 +60,12 @@ void BranchInstruction::resolve(OffsetTable& offsetTable)
 	if (offsetTable.find(branchName) != offsetTable.end())
 	{
 		short instructionOffset = offsetTable[branchName] - offset() + 1;
+		if (DoesFinalArgumentOverflow(instructionOffset))
+		{
+			std::ostringstream ss;
+			ss << "A jump to " << branchName << " would overflow the branch instruction. Rearrange code so that the branch is closer to this line.";
+			throw SemanticException(fileLocation, ss.str());
+		}
 		instructionBytes |= (unsigned short)instructionOffset & 0x0FFF;
 	}
 	else
@@ -109,6 +115,14 @@ ParsedInstruction* InstructionFactory::MakeBranchInstruction(BranchType type, st
 ParsedInstruction* InstructionFactory::MakeLoadStoreInstruction(LoadStoreType type, short register1, short register2, short offset, yy::location& loc)
 {
 	unsigned short prefix = (type == LOAD) ? 0b010 : 0b011;
+	
+	if (ThreeArgInstruction<3, 3, 3>::DoesFinalArgumentOverflow(offset))
+	{
+		std::ostringstream ss;
+		ss << "Constant operand " << offset << " overflows instruction.";
+		throw SemanticException(loc, ss.str());
+	}
+	
 	return new ThreeArgInstruction<3, 3, 3>(
 		prefix,
 		register1,
@@ -139,6 +153,13 @@ ParsedInstruction* InstructionFactory::MakeAluInstructionWithConstOperand(AluIns
 			// Should not be possible.
 			assert(0);
 			break;
+	}
+	
+	if (ThreeArgInstruction<5, 3, 3>::DoesFinalArgumentOverflow(offset))
+	{
+		std::ostringstream ss;
+		ss << "Constant operand " << offset << " overflows instruction.";
+		throw SemanticException(loc, ss.str());
 	}
 	
 	return new ThreeArgInstruction<5, 3, 3>(

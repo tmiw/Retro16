@@ -81,6 +81,15 @@ namespace f64_assembler
 			// empty
 		}
 		
+		static bool DoesFinalArgumentOverflow(short param)
+		{
+			int final_arg_bits = ParsedInstruction::INSTRUCTION_BITS - prefix_len;
+			int final_arg_max = (1 << (final_arg_bits + 1)) - 1;
+			int final_arg_min = ~final_arg_max + 1;
+	
+			return (param > final_arg_max || param < final_arg_min);
+		}
+		
 	private:
 		enum 
 		{
@@ -115,6 +124,15 @@ namespace f64_assembler
 			  )
 		{
 			// empty
+		}
+		
+		static bool DoesFinalArgumentOverflow(short param)
+		{
+			int final_arg_bits = ParsedInstruction::INSTRUCTION_BITS - prefix_len - param1_len - param2_len;
+			int final_arg_max = (1 << (final_arg_bits + 1)) - 1;
+			int final_arg_min = ~final_arg_max + 1;
+	
+			return (param > final_arg_max || param < final_arg_min);
 		}
 		
 	private:
