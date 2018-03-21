@@ -59,7 +59,7 @@ void BranchInstruction::resolve(OffsetTable& offsetTable)
 	// sort of error to the user.
 	if (offsetTable.find(branchName) != offsetTable.end())
 	{
-		short instructionOffset = offsetTable[branchName] - offset() + 1;
+		short instructionOffset = offsetTable[branchName] - offset();
 		if (DoesFinalArgumentOverflow(instructionOffset))
 		{
 			std::ostringstream ss;
