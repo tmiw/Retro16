@@ -23,12 +23,12 @@ begin
 			if (operand2[15] == 1)
 			begin
 				tempval <= ~operand2 + 16'b1;
-				result <= operand1 >> tempval;
+				result <= operand1 >> tempval[3:0];
 			end
 			else
 			begin
 				tempval <= 0;
-				result <= operand1 << operand2;
+				result <= operand1 << operand2[3:0];
 			end
 		end
 		3'b100:

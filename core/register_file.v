@@ -50,15 +50,22 @@ begin
 	if (left_register_num == 0)
 		left_register_out <= 0;
 	else
-		left_register_out <= reg_data[active_bank][left_register_num];
+		left_register_out <= 
+			(write_en && write_register_num == left_register_num) ? 
+			write_register_in : 
+			reg_data[active_bank][left_register_num];
 		
 	if (right_register_num == 0)
 		right_register_out <= 0;
 	else
-		right_register_out <= reg_data[active_bank][right_register_num];
+		right_register_out <= 
+			(write_en && write_register_num == right_register_num) ?
+			write_register_in :
+			reg_data[active_bank][right_register_num];
 		
 	cond_bit_out <= cond_bits;
-	pc_register_out <= reg_data[active_bank][6];
+	pc_register_out <= pc_write_en ? pc_register_in : 
+		(write_en && write_register_num == 6 ? write_register_in : reg_data[active_bank][6]);
 end
 
 always @(posedge clk)
@@ -70,7 +77,10 @@ begin
 			reg_data[active_bank][write_register_num] <= write_register_in;
 		end
 		
-		cond_bits <= {write_register_in == 0, write_register_in > 0, write_register_in[15]};
+		cond_bits <= {
+			write_register_in == 0, 
+			~write_register_in[15] && write_register_in[14:0] > 0, 
+			write_register_in[15]};
 	end
 	
 	if (pc_write_en)
