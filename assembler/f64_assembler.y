@@ -171,7 +171,7 @@ shift_direction		: SHIFT_LEFT				{ $$ = f64_assembler::InstructionFactory::Shift
 					;
 					
 math_reg_reg_inst	: alu_inst REGISTER SEP_COMMA REGISTER SEP_COMMA REGISTER
-												{ $$ = f64_assembler::InstructionFactory::MakeAluInstructionWithConstOperand(
+												{ $$ = f64_assembler::InstructionFactory::MakeAluInstructionWithRegOperand(
 													$1,
 													f64_assembler::InstructionFactory::RegisterNumberFromName($2),
 													f64_assembler::InstructionFactory::RegisterNumberFromName($4),
