@@ -32,6 +32,19 @@ output reg [15:0] pc_register_out = 0;
 reg [15:0] reg_data[0:1][0:15];
 reg [2:0] cond_bits;
 
+reg [4:0] i, j;
+
+initial
+begin
+	for (i = 0; i < 2; i = i + 1)
+	begin
+		for (j = 0; j < 16; j = j + 1)
+		begin
+			reg_data[i][j] = 0;
+		end
+	end
+end
+
 always @(*)
 begin
 	if (left_register_num == 0)
