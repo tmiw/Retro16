@@ -10,7 +10,9 @@ module register_file(
 	write_register_num,
 	write_register_in,
 	write_en,
-	active_bank
+	active_bank,
+	pc_register_in,
+	pc_write_en,
 );
 
 input clk;
@@ -18,7 +20,9 @@ input [2:0] left_register_num;
 input [2:0] right_register_num;
 input [2:0] write_register_num;
 input [15:0] write_register_in;
+input [15:0] pc_register_in;
 input write_en;
+input pc_write_en;
 input active_bank;
 output reg [15:0] left_register_out = 0;
 output reg [15:0] right_register_out = 0;
@@ -54,6 +58,11 @@ begin
 		end
 		
 		cond_bits <= {write_register_in == 0, write_register_in > 0, write_register_in[15]};
+	end
+	
+	if (pc_write_en)
+	begin
+		reg_data[active_bank][6] <= pc_register_in;
 	end
 end
 

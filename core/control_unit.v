@@ -30,8 +30,10 @@ wire [15:0] left_register_out;
 wire [15:0] right_register_out;
 wire [15:0] pc_register_out;
 reg [15:0] write_register_in;
+reg [15:0] pc_register_in;
 wire [2:0] cond_bit_out;
 reg reg_write_en;
+reg pc_write_en;
 reg active_bank;
 
 register_file regs(
@@ -45,7 +47,9 @@ register_file regs(
 	write_register_num,
 	write_register_in,
 	reg_write_en,
-	active_bank
+	active_bank,
+	pc_register_in,
+	pc_write_en
 );
 
 reg [15:0] alu_operand1;
@@ -87,9 +91,8 @@ always @(posedge clk)
 begin
 	if (rst)
 	begin
-		write_register_num <= 6;
-		write_register_in <= 16'h0100; // PC on boot = 256
-		reg_write_en <= 1;
+		pc_register_in <= 16'h0100; // PC on boot = 256
+		pc_write_en <= 1;
 		active_bank <= 0; // TODO: link to interrupt controller
 		current_state <= 0;
 		interrupt_ack <= 0;
@@ -104,6 +107,7 @@ begin
 			ram_read_en <= 1;
 			ram_write_en <= 0;
 			interrupt_ack <= 0;
+			pc_write_en <= 0;
 			current_state <= current_state + 3'b1;
 		end
 		1: begin
@@ -160,9 +164,8 @@ begin
 			// PC increment (if necessary)
 			if (dest_reg != 6)
 			begin
-				write_register_num <= 6;
-				write_register_in <= pc_register_out + 1;
-				reg_write_en <= 1;
+				pc_register_in <= pc_register_out + 1;
+				pc_write_en <= 1;
 			end
 			current_state <= current_state + 3'b1;
 		end
@@ -173,20 +176,23 @@ begin
 				// PC = 0x100 - interrupt number.
 				// Expected to be unconditional jump to actual handler at address.
 				active_bank <= 1;
-				reg_write_en <= 1;
-				write_register_num <= 6;
-				write_register_in <= 16'h0100 - interrupt_num;
+				pc_register_in <= 16'h0100 - interrupt_num;
+				pc_write_en <= 1;
 			end
 			else if (active_bank && interrupt_ack)
 			begin
 				// Switch back to bank 0, e.g. normal mode.
 				active_bank <= 0;
 				reg_write_en <= 0;
+				pc_write_en <= 0;
 			end
+			else
+				pc_write_en <= 0;
 			current_state <= current_state + 3'b1;
 		end
 		default: begin
 			// No-op so that everything stabilizes.
+			pc_write_en <= 0;
 			current_state <= current_state + 3'b1;
 		end
 		endcase
