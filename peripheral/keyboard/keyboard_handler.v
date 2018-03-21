@@ -15,7 +15,7 @@ output keyboard_interrupt;
 
 wire [7:0] decoded_key;
 wire read_key;
-ps2_keyboard keyboard(global_clk, ps2_clk1, ps2_dat1, decoded_key, read_key);
+ps2_keyboard keyboard(global_clk, ps2_clk, ps2_data, decoded_key, read_key);
 
 wire [15:0] set2_key_out;
 wire key_break_out;
