@@ -140,19 +140,7 @@ begin
 		ram_write <= 0;
 		should_interrupt_ack <= 0;
 	end
-	else if (instruction == 16'h0000)
-	begin
-		// No-op
-		destination_reg <= 0; // R0
-		first_reg <= 0; // R0
-		second_reg <= 0; // R0
-		offset <= 0;
-		alu_op <= 3'b100;
-		ram_read <= 0;
-		ram_write <= 0;
-		should_interrupt_ack <= 0;
-	end
-	else if (instruction == 16'h0001)
+/*	else if (instruction == 16'h0001)
 	begin
 		// End interrupt processing
 		destination_reg <= 0; // R0
@@ -163,7 +151,7 @@ begin
 		ram_read <= 0;
 		ram_write <= 0;
 		should_interrupt_ack <= 1;
-	end
+	end*/
 	else
 	begin
 		// Default is no-op
