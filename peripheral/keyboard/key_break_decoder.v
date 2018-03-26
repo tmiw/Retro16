@@ -9,14 +9,14 @@ module key_break_decoder(
 input global_clk;
 input [7:0] key_data_in;
 input key_changed;
-output reg [15:0] key_out;
+output reg [15:0] key_out = 0;
 output reg key_break_out;
 output reg key_changed_out;
 
 reg [1:0] current_state = 0;
 reg extended_seen = 0;
 
-always @(posedge global_clk)
+always @(key_changed)
 begin
 	if (key_changed)
 	begin
@@ -30,6 +30,7 @@ begin
 			end
 			else if (key_data_in == 8'hf0)
 			begin
+				key_out[15:8] <= 0;
 				key_break_out <= 1;
 				current_state <= 2;
 			end
@@ -65,7 +66,7 @@ begin
 		end
 		endcase
 	end
-	else if (current_state == 3)
+	else if (~key_changed && current_state == 3)
 	begin
 		// Outside of case block above to ensure that key_changed_out is only pulsed
 		// and does not stay on.
