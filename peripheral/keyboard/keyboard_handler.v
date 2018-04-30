@@ -32,11 +32,18 @@ set2_to_set1_translator set1_translator(
 	set2_key_out,
 	key_break_out,
 	set1_key_out);
+
+wire [15:0] ascii_char_out;
+set1_to_ascii_translator ascii_translator(
+	set1_key_out,
+	key_break_out,
+	ascii_char_out);
 	
 always @(posedge global_clk)
 begin
 	case (keyboard_ram_addr)
 	16'h0000: keyboard_ram_data <= set1_key_out;
+	16'h0001: keyboard_ram_data <= ascii_char_out;
 	default: keyboard_ram_data <= 16'h0000;
 	endcase
 end

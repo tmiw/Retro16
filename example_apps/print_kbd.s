@@ -2,6 +2,7 @@
 .raw 0xF82F				# Video memory offset
 .raw 0x0730				# ASCII 0
 .raw 0x0741				# ASCII A
+.raw 0x0700				# Color template for ASCII character
 
 start:
 	ld r1, r0, 0			# Load scan code address into r1
@@ -31,4 +32,8 @@ hex_out2:
 out_2:
 	add r4, r4, r5			# r4 = r4 + r5
 	st r2, r4, 0			# Store r4 at video memory + 0
+	ld r4, r1, 1			# Load ASCII code from KBD RAM + 1 to r4
+	ld r5, r0, 4			# Load video settings into r5
+	add r4, r4, r5			# r4 = r4 + r5
+	st r2, r4, 3			# Store r4 at video memory + 3
 	br loop				# Jump to loop

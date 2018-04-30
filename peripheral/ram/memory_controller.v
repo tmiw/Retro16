@@ -50,9 +50,9 @@ begin
 		if (address_in >= 16'hC000)
 		begin
 			// I/O area: 0xC000-0xFFFF
-			if (address_in == 16'hC000)
+			if (address_in <= 16'hC001)
 			begin
-				kbd_ram_addr <= 0;
+				kbd_ram_addr <= address_in - 16'hC000;
 				data_out <= kbd_ram_data;
 			end
 			else
